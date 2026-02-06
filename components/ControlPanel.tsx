@@ -61,6 +61,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
      (newSystem.buttons.variants as any)[variant][prop] = value;
      onChange(newSystem);
   };
+  
+  const updateInputs = (key: keyof DesignSystem['inputs'], value: any) => {
+    onChange({
+      ...system,
+      inputs: { ...system.inputs, [key]: value }
+    });
+  };
+
+  const updateAnimation = (key: keyof DesignSystem['animation'], value: any) => {
+    onChange({
+      ...system,
+      animation: { ...system.animation, [key]: value }
+    });
+  };
 
   const handleFontChange = (type: 'headingFont' | 'bodyFont', value: string) => {
       setLoadingFont(type);
@@ -110,7 +124,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
             step={step}
             value={value}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none cursor-pointer"
+            className="w-full cursor-pointer accent-[#1a1a1a]"
         />
     </div>
   );
@@ -122,6 +136,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
           <input
             type="color"
             value={value}
+            onInput={(e) => updateColor(path, (e.target as HTMLInputElement).value)}
             onChange={(e) => updateColor(path, e.target.value)}
             className="h-8 w-8 border border-[#1a1a1a] cursor-pointer"
           />
@@ -142,6 +157,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
           <input
             type="color"
             value={value === 'transparent' ? '#ffffff' : value}
+            onInput={(e) => onChange((e.target as HTMLInputElement).value)}
             onChange={(e) => onChange(e.target.value)}
             className="h-6 w-6 border border-[#1a1a1a] cursor-pointer"
           />
@@ -153,6 +169,27 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
           />
         </div>
       </div>
+  );
+
+  const InputColorControl = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
+    <div className="mb-3">
+        <label className="text-xs font-bold uppercase block mb-1">{label}</label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="color"
+            value={value}
+            onInput={(e) => onChange((e.target as HTMLInputElement).value)}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-6 w-6 border border-[#1a1a1a] cursor-pointer"
+          />
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="flex-1 bg-transparent border border-[#1a1a1a] px-2 py-0.5 text-xs font-mono"
+          />
+        </div>
+    </div>
   );
 
 
@@ -182,7 +219,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                <div className="space-y-1">
                 <label className="text-[10px] block">Canvas</label>
                 <div className="flex items-center">
-                    <input type="color" className="w-4 h-4 mr-1 border border-black" value={system.colors.light.canvas} onChange={(e) => updateColor(['light', 'canvas'], e.target.value)} />
+                    <input 
+                      type="color" 
+                      className="w-4 h-4 mr-1 border border-black cursor-pointer" 
+                      value={system.colors.light.canvas} 
+                      onInput={(e) => updateColor(['light', 'canvas'], (e.target as HTMLInputElement).value)}
+                      onChange={(e) => updateColor(['light', 'canvas'], e.target.value)} 
+                    />
                     <input type="text" className="w-full text-[10px] border border-black p-1 bg-transparent" value={system.colors.light.canvas} onChange={(e) => updateColor(['light', 'canvas'], e.target.value)} />
                 </div>
                </div>
@@ -191,7 +234,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                     Text <ContrastBadge fg={system.colors.light.text} bg={system.colors.light.canvas} />
                 </label>
                 <div className="flex items-center">
-                    <input type="color" className="w-4 h-4 mr-1 border border-black" value={system.colors.light.text} onChange={(e) => updateColor(['light', 'text'], e.target.value)} />
+                    <input 
+                      type="color" 
+                      className="w-4 h-4 mr-1 border border-black cursor-pointer" 
+                      value={system.colors.light.text} 
+                      onInput={(e) => updateColor(['light', 'text'], (e.target as HTMLInputElement).value)}
+                      onChange={(e) => updateColor(['light', 'text'], e.target.value)} 
+                    />
                     <input type="text" className="w-full text-[10px] border border-black p-1 bg-transparent" value={system.colors.light.text} onChange={(e) => updateColor(['light', 'text'], e.target.value)} />
                 </div>
                </div>
@@ -213,7 +262,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                <div className="space-y-1">
                 <label className="text-[10px] block">Canvas</label>
                 <div className="flex items-center">
-                    <input type="color" className="w-4 h-4 mr-1 border border-black" value={system.colors.dark.canvas} onChange={(e) => updateColor(['dark', 'canvas'], e.target.value)} />
+                    <input 
+                      type="color" 
+                      className="w-4 h-4 mr-1 border border-black cursor-pointer" 
+                      value={system.colors.dark.canvas} 
+                      onInput={(e) => updateColor(['dark', 'canvas'], (e.target as HTMLInputElement).value)}
+                      onChange={(e) => updateColor(['dark', 'canvas'], e.target.value)} 
+                    />
                     <input type="text" className="w-full text-[10px] border border-black p-1 bg-transparent" value={system.colors.dark.canvas} onChange={(e) => updateColor(['dark', 'canvas'], e.target.value)} />
                 </div>
                </div>
@@ -222,7 +277,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                     Text <ContrastBadge fg={system.colors.dark.text} bg={system.colors.dark.canvas} />
                 </label>
                 <div className="flex items-center">
-                    <input type="color" className="w-4 h-4 mr-1 border border-black" value={system.colors.dark.text} onChange={(e) => updateColor(['dark', 'text'], e.target.value)} />
+                    <input 
+                      type="color" 
+                      className="w-4 h-4 mr-1 border border-black cursor-pointer" 
+                      value={system.colors.dark.text} 
+                      onInput={(e) => updateColor(['dark', 'text'], (e.target as HTMLInputElement).value)}
+                      onChange={(e) => updateColor(['dark', 'text'], e.target.value)} 
+                    />
                     <input type="text" className="w-full text-[10px] border border-black p-1 bg-transparent" value={system.colors.dark.text} onChange={(e) => updateColor(['dark', 'text'], e.target.value)} />
                 </div>
                </div>
@@ -248,38 +309,35 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
 
       <Accordion title="B. Typography">
         <div className="space-y-4">
-             {/* Datalist for Fonts */}
-             <datalist id="font-options">
-                {POPULAR_FONTS.map(font => <option key={font} value={font} />)}
-            </datalist>
-
             <div>
                 <label className="text-xs font-bold uppercase block mb-1 flex justify-between">
                     Heading Font
                     {loadingFont === 'headingFont' && <Loader2 size={12} className="animate-spin text-[#1a1a1a]"/>}
                 </label>
-                <input 
-                    type="text"
-                    list="font-options"
+                <select 
                     className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none focus:ring-1 focus:ring-black"
                     value={system.typography.headingFont}
                     onChange={(e) => handleFontChange('headingFont', e.target.value)}
-                    placeholder="Type a Google Font..."
-                />
+                >
+                    {POPULAR_FONTS.map(font => (
+                        <option key={font} value={font}>{font}</option>
+                    ))}
+                </select>
             </div>
             <div>
                 <label className="text-xs font-bold uppercase block mb-1 flex justify-between">
                     Body Font
                     {loadingFont === 'bodyFont' && <Loader2 size={12} className="animate-spin text-[#1a1a1a]"/>}
                 </label>
-                <input 
-                    type="text"
-                    list="font-options"
+                <select 
                     className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none focus:ring-1 focus:ring-black"
                     value={system.typography.bodyFont}
                     onChange={(e) => handleFontChange('bodyFont', e.target.value)}
-                    placeholder="Type a Google Font..."
-                />
+                >
+                    {POPULAR_FONTS.map(font => (
+                        <option key={font} value={font}>{font}</option>
+                    ))}
+                </select>
             </div>
             
             <div className="pt-2 border-t border-dashed border-[#1a1a1a]">
@@ -360,7 +418,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                             type="range" min="-20" max="20"
                             value={system.shape.shadow.x}
                             onChange={(e) => onChange({...system, shape: {...system.shape, shadow: {...system.shape.shadow, x: Number(e.target.value)}}})}
-                            className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none"
+                            className="w-full cursor-pointer accent-[#1a1a1a]"
                         />
                     </div>
                      <div>
@@ -369,7 +427,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                             type="range" min="-20" max="20"
                             value={system.shape.shadow.y}
                             onChange={(e) => onChange({...system, shape: {...system.shape, shadow: {...system.shape.shadow, y: Number(e.target.value)}}})}
-                            className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none"
+                            className="w-full cursor-pointer accent-[#1a1a1a]"
                         />
                     </div>
                      <div>
@@ -378,7 +436,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                             type="range" min="0" max="40"
                             value={system.shape.shadow.blur}
                             onChange={(e) => onChange({...system, shape: {...system.shape, shadow: {...system.shape.shadow, blur: Number(e.target.value)}}})}
-                            className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none"
+                            className="w-full cursor-pointer accent-[#1a1a1a]"
                         />
                     </div>
                 </div>
@@ -413,6 +471,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                         <input 
                             type="color" 
                             value={system.interactive.primaryHover} 
+                            onInput={(e) => updateInteractive('primaryHover', (e.target as HTMLInputElement).value)}
                             onChange={(e) => updateInteractive('primaryHover', e.target.value)}
                             className="h-8 w-8 border border-[#1a1a1a]"
                         />
@@ -433,6 +492,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                         <input 
                             type="color" 
                             value={system.interactive.primaryFocus} 
+                             onInput={(e) => updateInteractive('primaryFocus', (e.target as HTMLInputElement).value)}
                              onChange={(e) => updateInteractive('primaryFocus', e.target.value)}
                             className="h-8 w-8 border border-[#1a1a1a]"
                         />
@@ -517,6 +577,57 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                  </div>
             </div>
         </div>
+      </Accordion>
+
+      <Accordion title="G. Form & Inputs">
+          <div className="space-y-4">
+              <SliderControl 
+                  label="Input Radius" 
+                  value={system.inputs.radius} 
+                  min={0} max={20} step={1} unit="px"
+                  onChange={(val) => updateInputs('radius', val)}
+              />
+              <SliderControl 
+                  label="Border Width" 
+                  value={system.inputs.borderWidth} 
+                  min={0} max={4} step={1} unit="px"
+                  onChange={(val) => updateInputs('borderWidth', val)}
+              />
+              <SliderControl 
+                  label="Focus Ring Width" 
+                  value={system.inputs.focusRingWidth} 
+                  min={0} max={8} step={1} unit="px"
+                  onChange={(val) => updateInputs('focusRingWidth', val)}
+              />
+              <div className="grid grid-cols-2 gap-2 border-t border-dashed border-[#1a1a1a] pt-3">
+                 <InputColorControl label="Base Bg" value={system.inputs.baseBg} onChange={(val) => updateInputs('baseBg', val)} />
+                 <InputColorControl label="Border Color" value={system.inputs.borderColor} onChange={(val) => updateInputs('borderColor', val)} />
+              </div>
+          </div>
+      </Accordion>
+
+      <Accordion title="H. Motion & Feel">
+          <div className="space-y-4">
+              <SliderControl 
+                  label="Speed (Duration)" 
+                  value={system.animation.duration} 
+                  min={0} max={1000} step={50} unit="ms"
+                  onChange={(val) => updateAnimation('duration', val)}
+              />
+              <div>
+                 <label className="text-xs font-bold uppercase block mb-1">Easing</label>
+                 <select 
+                    className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                    value={system.animation.easing}
+                    onChange={(e) => updateAnimation('easing', e.target.value)}
+                >
+                    <option value="linear">Linear (Constant)</option>
+                    <option value="ease">Ease (Default)</option>
+                    <option value="ease-in-out">Ease In-Out (Smooth)</option>
+                    <option value="cubic-bezier(0.4, 0, 0.2, 1)">Material Standard</option>
+                </select>
+              </div>
+          </div>
       </Accordion>
     </div>
   );

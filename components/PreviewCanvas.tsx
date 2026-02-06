@@ -50,6 +50,15 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
     '--btn-transform': system.buttons.textTransform,
     '--btn-weight': system.buttons.fontWeight,
     '--btn-shadow': system.buttons.applyShadow ? 'var(--shadow)' : 'none',
+    // Input Architecture
+    '--input-radius': `${system.inputs.radius}px`,
+    '--input-border': `${system.inputs.borderWidth}px`,
+    '--input-bg': system.inputs.baseBg,
+    '--input-border-color': system.inputs.borderColor,
+    '--ring-width': `${system.inputs.focusRingWidth}px`,
+    // Motion
+    '--motion-duration': `${system.animation.duration}ms`,
+    '--motion-ease': system.animation.easing,
   } as React.CSSProperties;
 
   const getContainerWidth = () => {
@@ -239,7 +248,7 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                     This paragraph demonstrates the primary body style. It's crucial for long-form content readability.
                                     The spacing between lines is governed by the line-height token, ensuring the text breathes properly.
                                     <br/><br/>
-                                    We can also test <a href="#" style={{ color: 'var(--primary)' }} className="underline decoration-2 underline-offset-4 hover:opacity-80 transition-opacity">inline links</a> within the text block.
+                                    We can also test <a href="#" style={{ color: 'var(--primary)', transition: 'all var(--motion-duration) var(--motion-ease)' }} className="underline decoration-2 underline-offset-4 hover:opacity-80">inline links</a> within the text block.
                                     They should be clearly distinguishable from the surrounding text.
                                 </p>
                             </div>
@@ -265,7 +274,7 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                     {/* Buttons */}
                                     <div className="flex flex-wrap items-center gap-[calc(var(--unit)*2)] mt-[calc(var(--unit))]">
                                         <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transition-all transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] flex items-center gap-2"
+                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] flex items-center gap-2"
                                             style={{ 
                                                 backgroundColor: system.buttons.variants.primary.bg, 
                                                 color: system.buttons.variants.primary.text,
@@ -275,14 +284,15 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                                 borderWidth: 'var(--btn-border)',
                                                 textTransform: system.buttons.textTransform,
                                                 fontWeight: system.buttons.fontWeight,
-                                                boxShadow: 'var(--btn-shadow)'
+                                                boxShadow: 'var(--btn-shadow)',
+                                                transition: 'all var(--motion-duration) var(--motion-ease)'
                                             }}
                                         >
                                             Primary Action <ArrowRight size={16} />
                                         </button>
 
                                         <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transition-all transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--secondary)]"
+                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--secondary)]"
                                             style={{ 
                                                 backgroundColor: system.buttons.variants.secondary.bg,
                                                 color: system.buttons.variants.secondary.text,
@@ -292,14 +302,15 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                                 borderWidth: 'var(--btn-border)',
                                                 textTransform: system.buttons.textTransform,
                                                 fontWeight: system.buttons.fontWeight,
-                                                boxShadow: 'var(--btn-shadow)'
+                                                boxShadow: 'var(--btn-shadow)',
+                                                transition: 'all var(--motion-duration) var(--motion-ease)'
                                             }}
                                         >
                                             Secondary
                                         </button>
 
                                         <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transition-all transform hover:bg-opacity-10"
+                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform hover:bg-opacity-10"
                                             style={{ 
                                                 backgroundColor: 'transparent',
                                                 color: system.buttons.variants.ghost.text,
@@ -309,11 +320,99 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                                 borderWidth: 'var(--btn-border)',
                                                 textTransform: system.buttons.textTransform,
                                                 fontWeight: system.buttons.fontWeight,
+                                                transition: 'all var(--motion-duration) var(--motion-ease)'
                                                 // Ghost usually doesn't have shadow unless forced
                                             }}
                                         >
                                             Ghost Action
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Form & Input Section */}
+                        <section>
+                            <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit)*2)]">Form Architecture</h6>
+                            <div className="p-[calc(var(--unit)*4)] border border-current border-opacity-20 bg-current bg-opacity-[0.02]" style={{ borderRadius: 'var(--radius)' }}>
+                                <div className="max-w-md space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold uppercase tracking-wider block mb-2 opacity-80">Email Address</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="e.g. name@company.com"
+                                            className="w-full px-4 py-3 outline-none focus:ring-[length:var(--ring-width)] focus:ring-[var(--primary)] focus:border-[var(--primary)] placeholder-current placeholder-opacity-40"
+                                            style={{
+                                                backgroundColor: 'var(--input-bg)',
+                                                borderColor: 'var(--input-border-color)',
+                                                borderWidth: 'var(--input-border)',
+                                                borderRadius: 'var(--input-radius)',
+                                                color: 'var(--text)',
+                                                transition: 'all var(--motion-duration) var(--motion-ease)'
+                                            }}
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs font-bold uppercase tracking-wider block mb-2 opacity-80">Role</label>
+                                            <select 
+                                                className="w-full px-4 py-3 outline-none focus:ring-[length:var(--ring-width)] focus:ring-[var(--primary)] focus:border-[var(--primary)] appearance-none"
+                                                style={{
+                                                    backgroundColor: 'var(--input-bg)',
+                                                    borderColor: 'var(--input-border-color)',
+                                                    borderWidth: 'var(--input-border)',
+                                                    borderRadius: 'var(--input-radius)',
+                                                    color: 'var(--text)',
+                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
+                                                }}
+                                            >
+                                                <option>Product Designer</option>
+                                                <option>Developer</option>
+                                                <option>Manager</option>
+                                            </select>
+                                        </div>
+                                         <div className="flex flex-col justify-end">
+                                            <button 
+                                                className="w-full py-3 font-bold text-center hover:brightness-110"
+                                                 style={{ 
+                                                    backgroundColor: 'var(--primary)', 
+                                                    color: '#fff',
+                                                    borderRadius: 'var(--btn-radius)',
+                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
+                                                }}
+                                            >
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-6 pt-2">
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" className="hidden peer" />
+                                            <div 
+                                                className="w-5 h-5 border-2 flex items-center justify-center peer-checked:bg-[var(--primary)] peer-checked:border-[var(--primary)]"
+                                                style={{ 
+                                                    borderColor: 'var(--input-border-color)',
+                                                    borderRadius: '4px',
+                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
+                                                }}
+                                            >
+                                                <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                            </div>
+                                            <span className="text-sm opacity-80 group-hover:opacity-100 transition-opacity">Subscribe to newsletter</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer group">
+                                            <input type="checkbox" className="hidden peer" defaultChecked />
+                                            <div 
+                                                className="w-10 h-6 rounded-full relative bg-gray-300 peer-checked:bg-[var(--success)] transition-colors"
+                                                 style={{ transition: 'background-color var(--motion-duration) var(--motion-ease)' }}
+                                            >
+                                                <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:left-5 shadow-sm"></div>
+                                            </div>
+                                            <span className="text-sm opacity-80 group-hover:opacity-100 transition-opacity">Notifications</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

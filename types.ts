@@ -47,6 +47,17 @@ export interface DesignSystem {
       ghost: { text: string; border: string; hoverBg: string };
     };
   };
+  inputs: {
+    radius: number;
+    borderWidth: number;
+    baseBg: string;
+    borderColor: string;
+    focusRingWidth: number;
+  };
+  animation: {
+    duration: number; // ms
+    easing: 'linear' | 'ease' | 'ease-in-out' | 'cubic-bezier(0.4, 0, 0.2, 1)';
+  };
   interactive: {
     primaryHover: string;
     primaryFocus: string;

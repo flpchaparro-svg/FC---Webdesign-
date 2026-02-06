@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { ControlPanel } from './components/ControlPanel';
 import { PreviewCanvas } from './components/PreviewCanvas';
-import { MetricsPanel } from './components/MetricsPanel';
 import { FontLoader } from './components/FontLoader';
 import { INITIAL_DESIGN_SYSTEM } from './constants';
 import { DesignSystem } from './types';
@@ -34,18 +33,13 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Left: Controls (25%) */}
-        <div className="w-1/4 h-full min-w-[300px]">
+        <div className="w-1/4 h-full min-w-[320px] max-w-[400px]">
           <ControlPanel system={system} onChange={handleSystemUpdate} />
         </div>
 
-        {/* Middle: Preview (50%) */}
-        <div className="w-1/2 h-full min-w-[400px] shadow-2xl z-10">
+        {/* Right: Preview (Flexible) */}
+        <div className="flex-1 h-full shadow-2xl z-10 overflow-hidden relative border-l-2 border-[#1a1a1a]">
           <PreviewCanvas system={system} />
-        </div>
-
-        {/* Right: Metrics (25%) */}
-        <div className="w-1/4 h-full min-w-[280px]">
-          <MetricsPanel system={system} />
         </div>
 
       </div>

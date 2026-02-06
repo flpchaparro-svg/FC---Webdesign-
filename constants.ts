@@ -49,6 +49,17 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
       ghost: { text: '#3B82F6', border: '#3B82F6', hoverBg: 'rgba(59, 130, 246, 0.1)' },
     },
   },
+  inputs: {
+    radius: 6,
+    borderWidth: 1,
+    baseBg: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    focusRingWidth: 3,
+  },
+  animation: {
+    duration: 200,
+    easing: 'ease-in-out',
+  },
   interactive: {
     primaryHover: '#2563EB',
     primaryFocus: '#1D4ED8',

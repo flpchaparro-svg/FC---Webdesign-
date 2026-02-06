@@ -37,7 +37,7 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `User Prompt: "${prompt}". Generate a complete design system.`,
+      contents: `User Prompt: "${prompt}". Generate a complete design system including inputs and motion.`,
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: "application/json",
@@ -131,6 +131,23 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
                     }
                   }
                 },
+                inputs: {
+                  type: Type.OBJECT,
+                  properties: {
+                    radius: { type: Type.NUMBER },
+                    borderWidth: { type: Type.NUMBER },
+                    baseBg: { type: Type.STRING },
+                    borderColor: { type: Type.STRING },
+                    focusRingWidth: { type: Type.NUMBER },
+                  }
+                },
+                animation: {
+                  type: Type.OBJECT,
+                  properties: {
+                    duration: { type: Type.NUMBER },
+                    easing: { type: Type.STRING, enum: ['linear', 'ease', 'ease-in-out', 'cubic-bezier(0.4, 0, 0.2, 1)'] },
+                  }
+                },
                 interactive: {
                   type: Type.OBJECT,
                   properties: {
@@ -156,6 +173,8 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
         typography: { ...INITIAL_DESIGN_SYSTEM.typography, ...result.system?.typography },
         shape: { ...INITIAL_DESIGN_SYSTEM.shape, ...result.system?.shape },
         buttons: { ...INITIAL_DESIGN_SYSTEM.buttons, ...result.system?.buttons },
+        inputs: { ...INITIAL_DESIGN_SYSTEM.inputs, ...result.system?.inputs },
+        animation: { ...INITIAL_DESIGN_SYSTEM.animation, ...result.system?.animation },
     };
 
     return {

@@ -13,7 +13,7 @@ export const downloadJSON = (data: object, filename: string) => {
 };
 
 export const generateCSS = (system: DesignSystem): string => {
-  const { colors, typography, spacing, shape, interactive, buttons } = system;
+  const { colors, typography, spacing, shape, interactive, buttons, inputs, animation } = system;
   
   return `:root {
   /* Brand Palette */
@@ -58,6 +58,17 @@ export const generateCSS = (system: DesignSystem): string => {
   --btn-border: ${buttons.borderWidth}px;
   --btn-transform: ${buttons.textTransform};
   --btn-weight: ${buttons.fontWeight};
+
+  /* Input Architecture */
+  --input-radius: ${inputs.radius}px;
+  --input-border: ${inputs.borderWidth}px;
+  --input-bg: ${inputs.baseBg};
+  --input-border-color: ${inputs.borderColor};
+  --ring-width: ${inputs.focusRingWidth}px;
+
+  /* Motion & Animation */
+  --motion-duration: ${animation.duration}ms;
+  --motion-ease: ${animation.easing};
 }`;
 };
 
@@ -82,6 +93,10 @@ export const generateTailwindConfig = (system: DesignSystem): string => {
         text: {
           light: '${system.colors.light.text}',
           dark: '${system.colors.dark.text}',
+        },
+        input: {
+          bg: '${system.inputs.baseBg}',
+          border: '${system.inputs.borderColor}',
         }
       },
       fontFamily: {
@@ -91,9 +106,20 @@ export const generateTailwindConfig = (system: DesignSystem): string => {
       borderRadius: {
         DEFAULT: '${system.shape.borderRadius}px',
         btn: '${system.buttons.radius}px',
+        input: '${system.inputs.radius}px',
       },
       borderWidth: {
         btn: '${system.buttons.borderWidth}px',
+        input: '${system.inputs.borderWidth}px',
+      },
+      ringWidth: {
+        DEFAULT: '${system.inputs.focusRingWidth}px',
+      },
+      transitionDuration: {
+        DEFAULT: '${system.animation.duration}ms',
+      },
+      transitionTimingFunction: {
+        DEFAULT: '${system.animation.easing}',
       },
       spacing: {
         unit: '${system.spacing.baseUnit}px',
