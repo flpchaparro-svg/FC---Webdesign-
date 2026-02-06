@@ -51,6 +51,10 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
                   type: Type.OBJECT,
                   properties: {
                     primary: { type: Type.STRING },
+                    secondary: { type: Type.STRING },
+                    accent: { type: Type.STRING },
+                    success: { type: Type.STRING },
+                    error: { type: Type.STRING },
                     light: {
                       type: Type.OBJECT,
                       properties: {
@@ -100,6 +104,33 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
                     }
                   }
                 },
+                buttons: {
+                  type: Type.OBJECT,
+                  properties: {
+                    radius: { type: Type.NUMBER },
+                    borderWidth: { type: Type.NUMBER },
+                    textTransform: { type: Type.STRING, enum: ['uppercase', 'none', 'capitalize'] },
+                    fontWeight: { type: Type.STRING },
+                    applyShadow: { type: Type.BOOLEAN },
+                    variants: {
+                      type: Type.OBJECT,
+                      properties: {
+                        primary: {
+                          type: Type.OBJECT,
+                          properties: { bg: { type: Type.STRING }, text: { type: Type.STRING }, border: { type: Type.STRING } }
+                        },
+                        secondary: {
+                          type: Type.OBJECT,
+                          properties: { bg: { type: Type.STRING }, text: { type: Type.STRING }, border: { type: Type.STRING } }
+                        },
+                        ghost: {
+                          type: Type.OBJECT,
+                          properties: { text: { type: Type.STRING }, border: { type: Type.STRING }, hoverBg: { type: Type.STRING } }
+                        }
+                      }
+                    }
+                  }
+                },
                 interactive: {
                   type: Type.OBJECT,
                   properties: {
@@ -124,6 +155,7 @@ export const generateDesignSystem = async (prompt: string): Promise<{ system: De
         colors: { ...INITIAL_DESIGN_SYSTEM.colors, ...result.system?.colors },
         typography: { ...INITIAL_DESIGN_SYSTEM.typography, ...result.system?.typography },
         shape: { ...INITIAL_DESIGN_SYSTEM.shape, ...result.system?.shape },
+        buttons: { ...INITIAL_DESIGN_SYSTEM.buttons, ...result.system?.buttons },
     };
 
     return {

@@ -3,6 +3,10 @@ import { DesignSystem, FontOption } from './types';
 export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
   colors: {
     primary: '#3B82F6',
+    secondary: '#64748B',
+    accent: '#F59E0B',
+    success: '#10B981',
+    error: '#EF4444',
     light: {
       canvas: '#FFFFFF',
       text: '#111827',
@@ -33,19 +37,31 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
       blur: 6,
     },
   },
+  buttons: {
+    radius: 8,
+    borderWidth: 2,
+    textTransform: 'none',
+    fontWeight: '600',
+    applyShadow: false,
+    variants: {
+      primary: { bg: '#3B82F6', text: '#FFFFFF', border: 'transparent' },
+      secondary: { bg: '#64748B', text: '#FFFFFF', border: 'transparent' },
+      ghost: { text: '#3B82F6', border: '#3B82F6', hoverBg: 'rgba(59, 130, 246, 0.1)' },
+    },
+  },
   interactive: {
     primaryHover: '#2563EB',
     primaryFocus: '#1D4ED8',
   },
 };
 
-export const FONT_OPTIONS: FontOption[] = [
-  { label: 'Inter (Sans)', value: 'Inter', category: 'sans-serif' },
-  { label: 'Roboto (Sans)', value: 'Roboto', category: 'sans-serif' },
-  { label: 'Playfair Display (Serif)', value: 'Playfair Display', category: 'serif' },
-  { label: 'Merriweather (Serif)', value: 'Merriweather', category: 'serif' },
-  { label: 'Oswald (Display)', value: 'Oswald', category: 'display' },
-  { label: 'Space Mono (Mono)', value: 'Space Mono', category: 'monospace' },
+export const POPULAR_FONTS = [
+  "Inter", "Roboto", "Open Sans", "Lato", "Poppins", "Montserrat", "Roboto Condensed", 
+  "Oswald", "Source Sans 3", "Slabo 27px", "Raleway", "PT Sans", "Merriweather", 
+  "Nunito", "Noto Sans", "Playfair Display", "Rubik", "Lora", "Work Sans", "Mukta", 
+  "Nunito Sans", "Fira Sans", "Quicksand", "Hind", "Barlow", "Mulish", "Inconsolata", 
+  "Titillium Web", "PT Serif", "Heebo", "Libre Franklin", "DM Sans", "Space Mono", 
+  "Syne", "Outfit", "Manrope", "Urbanist"
 ];
 
 export const TYPE_SCALES = [

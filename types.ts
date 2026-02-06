@@ -1,6 +1,10 @@
 export interface DesignSystem {
   colors: {
     primary: string;
+    secondary: string;
+    accent: string;
+    success: string;
+    error: string;
     light: {
       canvas: string;
       text: string;
@@ -29,6 +33,18 @@ export interface DesignSystem {
       x: number;
       y: number;
       blur: number;
+    };
+  };
+  buttons: {
+    radius: number;
+    borderWidth: number;
+    textTransform: 'uppercase' | 'none' | 'capitalize';
+    fontWeight: string;
+    applyShadow: boolean;
+    variants: {
+      primary: { bg: string; text: string; border: string };
+      secondary: { bg: string; text: string; border: string };
+      ghost: { text: string; border: string; hoverBg: string };
     };
   };
   interactive: {

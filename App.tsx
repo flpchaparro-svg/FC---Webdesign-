@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { ControlPanel } from './components/ControlPanel';
 import { PreviewCanvas } from './components/PreviewCanvas';
 import { MetricsPanel } from './components/MetricsPanel';
+import { FontLoader } from './components/FontLoader';
 import { INITIAL_DESIGN_SYSTEM } from './constants';
 import { DesignSystem } from './types';
 
@@ -21,8 +22,13 @@ function App() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#FFF2EC] text-[#1a1a1a] font-sans overflow-hidden">
+      <FontLoader 
+        headingFont={system.typography.headingFont} 
+        bodyFont={system.typography.bodyFont} 
+      />
+      
       {/* Top Header */}
-      <Header onSystemUpdate={handleAiUpdate} currentRationale={rationale} />
+      <Header onSystemUpdate={handleAiUpdate} system={system} currentRationale={rationale} />
 
       {/* Main Split View */}
       <div className="flex-1 flex overflow-hidden">

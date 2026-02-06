@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DesignSystem } from '../types';
 import { Accordion } from './Accordion';
-import { FONT_OPTIONS, TYPE_SCALES } from '../constants';
-import { calculateContrastRatio } from '../services/utils';
+import { POPULAR_FONTS } from '../constants';
+import { calculateContrastRatio, generateDarkCounterpart } from '../services/utils';
+import { Loader2, Wand2, RefreshCw } from 'lucide-react';
 
 interface ControlPanelProps {
   system: DesignSystem;
@@ -11,6 +12,8 @@ interface ControlPanelProps {
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) => {
   const [activeTab, setActiveTab] = useState<'default' | 'hover' | 'focus'>('default');
+  const [loadingFont, setLoadingFont] = useState<string | null>(null);
+  const [syncDarkMode, setSyncDarkMode] = useState(false);
 
   const updateColor = (path: string[], value: string) => {
     const newSystem = { ...system };
@@ -19,15 +22,55 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
       current = current[path[i]];
     }
     current[path[path.length - 1]] = value;
+
+    // Smart Dark Mode Sync Logic
+    if (syncDarkMode && path[0] === 'light') {
+        if (path[1] === 'canvas') {
+            newSystem.colors.dark.canvas = generateDarkCounterpart(value, 'background');
+        } else if (path[1] === 'text') {
+            newSystem.colors.dark.text = generateDarkCounterpart(value, 'text');
+        }
+    }
+
     onChange(newSystem);
   };
   
+  const generateSmartDarkMode = () => {
+    const newSystem = { ...system };
+    newSystem.colors.dark.canvas = generateDarkCounterpart(system.colors.light.canvas, 'background');
+    newSystem.colors.dark.text = generateDarkCounterpart(system.colors.light.text, 'text');
+    onChange(newSystem);
+  };
+
   const updateInteractive = (key: keyof DesignSystem['interactive'], value: string) => {
     onChange({
         ...system,
         interactive: { ...system.interactive, [key]: value }
     });
   }
+
+  const updateButtons = (key: keyof DesignSystem['buttons'], value: any) => {
+    onChange({
+      ...system,
+      buttons: { ...system.buttons, [key]: value }
+    });
+  };
+
+  const updateButtonVariant = (variant: 'primary' | 'secondary' | 'ghost', prop: string, value: string) => {
+     const newSystem = { ...system };
+     (newSystem.buttons.variants as any)[variant][prop] = value;
+     onChange(newSystem);
+  };
+
+  const handleFontChange = (type: 'headingFont' | 'bodyFont', value: string) => {
+      setLoadingFont(type);
+      onChange({
+          ...system,
+          typography: { ...system.typography, [type]: value }
+      });
+      // Clear loader visual after delay (synced roughly with debouncer)
+      setTimeout(() => setLoadingFont(null), 800);
+  };
 
   const ContrastBadge = ({ fg, bg }: { fg: string; bg: string }) => {
     const ratio = calculateContrastRatio(fg, bg);
@@ -38,6 +81,81 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
     );
   };
 
+  const SliderControl = ({ 
+    label, 
+    value, 
+    min, 
+    max, 
+    step, 
+    unit = '', 
+    onChange 
+  }: { 
+    label: string, 
+    value: number, 
+    min: number, 
+    max: number, 
+    step: number, 
+    unit?: string, 
+    onChange: (val: number) => void 
+  }) => (
+    <div className="mb-3">
+        <div className="flex justify-between items-center mb-1">
+            <label className="text-xs font-bold uppercase">{label}</label>
+            <span className="text-xs font-mono">{value}{unit}</span>
+        </div>
+        <input 
+            type="range" 
+            min={min} 
+            max={max} 
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none cursor-pointer"
+        />
+    </div>
+  );
+
+  const ColorInput = ({ label, value, path }: { label: string, value: string, path: string[] }) => (
+      <div className="space-y-1">
+        <label className="text-xs font-bold uppercase block">{label}</label>
+        <div className="flex gap-2">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => updateColor(path, e.target.value)}
+            className="h-8 w-8 border border-[#1a1a1a] cursor-pointer"
+          />
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => updateColor(path, e.target.value)}
+            className="flex-1 bg-transparent border border-[#1a1a1a] px-2 py-1 text-xs font-mono"
+          />
+        </div>
+      </div>
+  );
+
+  const VariantColorInput = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold uppercase block opacity-70">{label}</label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="color"
+            value={value === 'transparent' ? '#ffffff' : value}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-6 w-6 border border-[#1a1a1a] cursor-pointer"
+          />
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="flex-1 bg-transparent border border-[#1a1a1a] px-2 py-0.5 text-[10px] font-mono"
+          />
+        </div>
+      </div>
+  );
+
+
   return (
     <div className="h-full overflow-y-auto bg-[#FFF2EC] border-r-2 border-[#1a1a1a]">
       <div className="p-4 border-b-2 border-[#1a1a1a]">
@@ -45,28 +163,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
         <p className="text-xs mt-1 opacity-70">Define atomic values</p>
       </div>
 
-      <Accordion title="A. Semantic Colors" defaultOpen>
+      <Accordion title="A. Palette System" defaultOpen>
         <div className="space-y-4">
-          {/* Primary */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold uppercase block">Primary Brand</label>
-            <div className="flex gap-2">
-              <input
-                type="color"
-                value={system.colors.primary}
-                onChange={(e) => updateColor(['primary'], e.target.value)}
-                className="h-8 w-8 border border-[#1a1a1a] cursor-pointer"
-              />
-              <input
-                type="text"
-                value={system.colors.primary}
-                onChange={(e) => updateColor(['primary'], e.target.value)}
-                className="flex-1 bg-transparent border border-[#1a1a1a] px-2 py-1 text-xs font-mono"
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4">
+              <ColorInput label="Primary Brand" value={system.colors.primary} path={['primary']} />
+              <ColorInput label="Secondary" value={system.colors.secondary} path={['secondary']} />
+              <ColorInput label="Accent / Warning" value={system.colors.accent} path={['accent']} />
+              <div className="grid grid-cols-2 gap-2">
+                 <ColorInput label="Success" value={system.colors.success} path={['success']} />
+                 <ColorInput label="Error" value={system.colors.error} path={['error']} />
+              </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 border-t border-dashed border-[#1a1a1a] pt-4">
             {/* Light Mode */}
             <div className="space-y-2">
                <h4 className="text-xs font-bold underline">Light Mode</h4>
@@ -90,7 +199,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
 
             {/* Dark Mode */}
             <div className="space-y-2">
-               <h4 className="text-xs font-bold underline">Dark Mode</h4>
+               <div className="flex items-center justify-between">
+                   <h4 className="text-xs font-bold underline">Dark Mode</h4>
+                   <button 
+                    onClick={generateSmartDarkMode} 
+                    className="p-1 hover:bg-[#1a1a1a] hover:text-white rounded-full transition-colors"
+                    title="Auto-generate from Light Mode"
+                   >
+                       <Wand2 size={12} />
+                   </button>
+               </div>
+               
                <div className="space-y-1">
                 <label className="text-[10px] block">Canvas</label>
                 <div className="flex items-center">
@@ -107,73 +226,89 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                     <input type="text" className="w-full text-[10px] border border-black p-1 bg-transparent" value={system.colors.dark.text} onChange={(e) => updateColor(['dark', 'text'], e.target.value)} />
                 </div>
                </div>
+
+               {/* Sync Checkbox */}
+               <div className="pt-2 flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="syncDarkMode"
+                    checked={syncDarkMode}
+                    onChange={(e) => setSyncDarkMode(e.target.checked)}
+                    className="accent-[#1a1a1a]"
+                  />
+                  <label htmlFor="syncDarkMode" className="text-[10px] cursor-pointer flex items-center gap-1 opacity-80 hover:opacity-100">
+                    <RefreshCw size={10} />
+                    Sync with Light
+                  </label>
+               </div>
             </div>
           </div>
         </div>
       </Accordion>
 
       <Accordion title="B. Typography">
-        <div className="space-y-3">
+        <div className="space-y-4">
+             {/* Datalist for Fonts */}
+             <datalist id="font-options">
+                {POPULAR_FONTS.map(font => <option key={font} value={font} />)}
+            </datalist>
+
             <div>
-                <label className="text-xs font-bold uppercase block mb-1">Heading Font</label>
-                <select 
-                    className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
+                <label className="text-xs font-bold uppercase block mb-1 flex justify-between">
+                    Heading Font
+                    {loadingFont === 'headingFont' && <Loader2 size={12} className="animate-spin text-[#1a1a1a]"/>}
+                </label>
+                <input 
+                    type="text"
+                    list="font-options"
+                    className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none focus:ring-1 focus:ring-black"
                     value={system.typography.headingFont}
-                    onChange={(e) => onChange({...system, typography: {...system.typography, headingFont: e.target.value}})}
-                >
-                    {FONT_OPTIONS.map(f => <option key={f.value} value={f.value} style={{fontFamily: f.value}}>{f.label}</option>)}
-                </select>
+                    onChange={(e) => handleFontChange('headingFont', e.target.value)}
+                    placeholder="Type a Google Font..."
+                />
             </div>
             <div>
-                <label className="text-xs font-bold uppercase block mb-1">Body Font</label>
-                <select 
-                    className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
+                <label className="text-xs font-bold uppercase block mb-1 flex justify-between">
+                    Body Font
+                    {loadingFont === 'bodyFont' && <Loader2 size={12} className="animate-spin text-[#1a1a1a]"/>}
+                </label>
+                <input 
+                    type="text"
+                    list="font-options"
+                    className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none focus:ring-1 focus:ring-black"
                     value={system.typography.bodyFont}
-                    onChange={(e) => onChange({...system, typography: {...system.typography, bodyFont: e.target.value}})}
-                >
-                    {FONT_OPTIONS.map(f => <option key={f.value} value={f.value} style={{fontFamily: f.value}}>{f.label}</option>)}
-                </select>
+                    onChange={(e) => handleFontChange('bodyFont', e.target.value)}
+                    placeholder="Type a Google Font..."
+                />
             </div>
-            <div className="flex gap-2">
-                <div className="flex-1">
-                    <label className="text-xs font-bold uppercase block mb-1">Base (px)</label>
-                    <input 
-                        type="number" 
-                        value={system.typography.baseSize}
-                        onChange={(e) => onChange({...system, typography: {...system.typography, baseSize: Number(e.target.value)}})}
-                        className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
+            
+            <div className="pt-2 border-t border-dashed border-[#1a1a1a]">
+                <SliderControl 
+                    label="Base Size" 
+                    value={system.typography.baseSize} 
+                    min={12} max={24} step={1} unit="px"
+                    onChange={(val) => onChange({...system, typography: {...system.typography, baseSize: val}})}
+                />
+                
+                <SliderControl 
+                    label="Scale Ratio" 
+                    value={system.typography.scaleRatio} 
+                    min={1.0} max={2.0} step={0.001}
+                    onChange={(val) => onChange({...system, typography: {...system.typography, scaleRatio: val}})}
+                />
+
+                <div className="grid grid-cols-2 gap-2">
+                    <SliderControl 
+                        label="LH Head" 
+                        value={system.typography.lineHeightHeading} 
+                        min={0.8} max={2.5} step={0.1}
+                        onChange={(val) => onChange({...system, typography: {...system.typography, lineHeightHeading: val}})}
                     />
-                </div>
-                <div className="flex-1">
-                    <label className="text-xs font-bold uppercase block mb-1">Scale</label>
-                    <select 
-                        className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
-                        value={system.typography.scaleRatio}
-                        onChange={(e) => onChange({...system, typography: {...system.typography, scaleRatio: Number(e.target.value)}})}
-                    >
-                        {TYPE_SCALES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                    </select>
-                </div>
-            </div>
-             <div className="flex gap-2">
-                <div className="flex-1">
-                    <label className="text-xs font-bold uppercase block mb-1">LH Head</label>
-                    <input 
-                        type="number" 
-                        step="0.1"
-                        value={system.typography.lineHeightHeading}
-                        onChange={(e) => onChange({...system, typography: {...system.typography, lineHeightHeading: Number(e.target.value)}})}
-                        className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
-                    />
-                </div>
-                <div className="flex-1">
-                    <label className="text-xs font-bold uppercase block mb-1">LH Body</label>
-                    <input 
-                        type="number"
-                        step="0.1"
-                        value={system.typography.lineHeightBody}
-                        onChange={(e) => onChange({...system, typography: {...system.typography, lineHeightBody: Number(e.target.value)}})}
-                        className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
+                     <SliderControl 
+                        label="LH Body" 
+                        value={system.typography.lineHeightBody} 
+                        min={0.8} max={2.5} step={0.1}
+                        onChange={(val) => onChange({...system, typography: {...system.typography, lineHeightBody: val}})}
                     />
                 </div>
             </div>
@@ -182,49 +317,40 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
 
       <Accordion title="C. Spacing & Layout">
         <div className="space-y-4">
-            <div>
-                <label className="text-xs font-bold uppercase block mb-1">Base Unit (px)</label>
-                <input 
-                    type="number" 
-                    value={system.spacing.baseUnit}
-                    onChange={(e) => onChange({...system, spacing: {...system.spacing, baseUnit: Number(e.target.value)}})}
-                    className="w-full bg-transparent border border-[#1a1a1a] p-2 text-xs"
-                />
-            </div>
-            <div>
-                <label className="text-xs font-bold uppercase block mb-1">Max Width: {system.spacing.maxContainerWidth}px</label>
-                <input 
-                    type="range" 
-                    min="960" max="1600"
-                    value={system.spacing.maxContainerWidth}
-                    onChange={(e) => onChange({...system, spacing: {...system.spacing, maxContainerWidth: Number(e.target.value)}})}
-                    className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none"
-                />
-            </div>
+            <SliderControl 
+                label="Base Unit" 
+                value={system.spacing.baseUnit} 
+                min={4} max={16} step={1} unit="px"
+                onChange={(val) => onChange({...system, spacing: {...system.spacing, baseUnit: val}})}
+            />
+            <SliderControl 
+                label="Max Width" 
+                value={system.spacing.maxContainerWidth} 
+                min={960} max={1600} step={10} unit="px"
+                onChange={(val) => onChange({...system, spacing: {...system.spacing, maxContainerWidth: val}})}
+            />
         </div>
       </Accordion>
 
       <Accordion title="D. Shape & Surface">
         <div className="space-y-4">
-             <div>
-                <label className="text-xs font-bold uppercase block mb-1">Radius: {system.shape.borderRadius}px</label>
+            <SliderControl 
+                label="Border Radius" 
+                value={system.shape.borderRadius} 
+                min={0} max={50} step={1} unit="px"
+                onChange={(val) => onChange({...system, shape: {...system.shape, borderRadius: val}})}
+            />
+            
+            <div className="flex items-center mb-4">
                 <input 
-                    type="range" 
-                    min="0" max="32"
-                    value={system.shape.borderRadius}
-                    onChange={(e) => onChange({...system, shape: {...system.shape, borderRadius: Number(e.target.value)}})}
-                    className="w-full accent-[#1a1a1a] h-1 bg-[#1a1a1a] appearance-none"
+                    type="checkbox" 
+                    checked={system.shape.linkCorners}
+                    onChange={(e) => onChange({...system, shape: {...system.shape, linkCorners: e.target.checked}})}
+                    className="mr-2 accent-[#1a1a1a]"
                 />
-                <div className="mt-2 flex items-center">
-                    <input 
-                        type="checkbox" 
-                        checked={system.shape.linkCorners}
-                        onChange={(e) => onChange({...system, shape: {...system.shape, linkCorners: e.target.checked}})}
-                        className="mr-2 accent-[#1a1a1a]"
-                    />
-                    <label className="text-xs">Link all corners</label>
-                </div>
+                <label className="text-xs">Link all corners</label>
             </div>
+
             <div className="border-t border-dashed border-[#1a1a1a] pt-3">
                 <label className="text-xs font-bold uppercase block mb-2">Shadow</label>
                 <div className="grid grid-cols-3 gap-2 text-center">
@@ -319,6 +445,77 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
                      </div>
                  </div>
              )}
+        </div>
+      </Accordion>
+
+      <Accordion title="F. Button Architecture">
+        <div className="space-y-4">
+            <SliderControl 
+                label="Roundness" 
+                value={system.buttons.radius} 
+                min={0} max={50} step={1} unit="px"
+                onChange={(val) => updateButtons('radius', val)}
+            />
+            <SliderControl 
+                label="Stroke Width" 
+                value={system.buttons.borderWidth} 
+                min={0} max={8} step={1} unit="px"
+                onChange={(val) => updateButtons('borderWidth', val)}
+            />
+
+            <div className="grid grid-cols-2 gap-2">
+                <div>
+                     <label className="text-xs font-bold uppercase block mb-1">Text Case</label>
+                     <select 
+                        className="w-full bg-transparent border border-[#1a1a1a] p-1 text-xs"
+                        value={system.buttons.textTransform}
+                        onChange={(e) => updateButtons('textTransform', e.target.value)}
+                    >
+                        <option value="none">Normal</option>
+                        <option value="uppercase">Uppercase</option>
+                        <option value="capitalize">Capitalize</option>
+                    </select>
+                </div>
+                 <div>
+                     <label className="text-xs font-bold uppercase block mb-1">Weight</label>
+                     <select 
+                        className="w-full bg-transparent border border-[#1a1a1a] p-1 text-xs"
+                        value={system.buttons.fontWeight}
+                        onChange={(e) => updateButtons('fontWeight', e.target.value)}
+                    >
+                        <option value="400">Regular (400)</option>
+                        <option value="500">Medium (500)</option>
+                        <option value="600">SemiBold (600)</option>
+                        <option value="700">Bold (700)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="flex items-center mb-2">
+                <input 
+                    type="checkbox" 
+                    checked={system.buttons.applyShadow}
+                    onChange={(e) => updateButtons('applyShadow', e.target.checked)}
+                    className="mr-2 accent-[#1a1a1a]"
+                />
+                <label className="text-xs">Apply Drop Shadow</label>
+            </div>
+
+            <div className="border-t border-dashed border-[#1a1a1a] pt-3">
+                 <h4 className="text-xs font-bold underline mb-2">Ghost Variant Overrides</h4>
+                 <div className="grid grid-cols-1 gap-2">
+                    <VariantColorInput 
+                        label="Ghost Text" 
+                        value={system.buttons.variants.ghost.text} 
+                        onChange={(val) => updateButtonVariant('ghost', 'text', val)} 
+                    />
+                     <VariantColorInput 
+                        label="Ghost Border" 
+                        value={system.buttons.variants.ghost.border} 
+                        onChange={(val) => updateButtonVariant('ghost', 'border', val)} 
+                    />
+                 </div>
+            </div>
         </div>
       </Accordion>
     </div>
