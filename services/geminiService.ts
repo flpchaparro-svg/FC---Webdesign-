@@ -1,0 +1,138 @@
+import { GoogleGenAI, Type } from "@google/genai";
+import { DesignSystem } from "../types";
+import { INITIAL_DESIGN_SYSTEM } from "../constants";
+
+// Helper to validate and clean keys if necessary, though Type schema handles most
+const parseDesignSystem = (text: string): Partial<DesignSystem> => {
+  try {
+    // Attempt to extract JSON if wrapped in markdown code blocks
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    const jsonString = jsonMatch ? jsonMatch[1] : text;
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error("Failed to parse Gemini response", e);
+    return INITIAL_DESIGN_SYSTEM;
+  }
+};
+
+export const generateDesignSystem = async (prompt: string): Promise<{ system: DesignSystem; rationale: string }> => {
+  if (!process.env.API_KEY) {
+    throw new Error("API_KEY is not set");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const systemPrompt = `
+    You are a world-class UI/UX Designer and Design Systems Architect.
+    Your task is to generate a JSON configuration for a design system based on the user's request.
+    
+    The output must strictly adhere to the following JSON structure. 
+    Ensure high accessibility contrast ratios (AA standard at minimum) for both light and dark modes.
+    
+    Output format should contain two fields:
+    1. "system": The DesignSystem object.
+    2. "rationale": A short paragraph explaining your design choices (mood, typography, color theory).
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `User Prompt: "${prompt}". Generate a complete design system.`,
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            system: {
+              type: Type.OBJECT,
+              properties: {
+                colors: {
+                  type: Type.OBJECT,
+                  properties: {
+                    primary: { type: Type.STRING },
+                    light: {
+                      type: Type.OBJECT,
+                      properties: {
+                        canvas: { type: Type.STRING },
+                        text: { type: Type.STRING },
+                      }
+                    },
+                    dark: {
+                      type: Type.OBJECT,
+                      properties: {
+                        canvas: { type: Type.STRING },
+                        text: { type: Type.STRING },
+                      }
+                    }
+                  }
+                },
+                typography: {
+                  type: Type.OBJECT,
+                  properties: {
+                    headingFont: { type: Type.STRING },
+                    bodyFont: { type: Type.STRING },
+                    baseSize: { type: Type.NUMBER },
+                    scaleRatio: { type: Type.NUMBER },
+                    lineHeightHeading: { type: Type.NUMBER },
+                    lineHeightBody: { type: Type.NUMBER },
+                  }
+                },
+                spacing: {
+                  type: Type.OBJECT,
+                  properties: {
+                    baseUnit: { type: Type.NUMBER },
+                    maxContainerWidth: { type: Type.NUMBER },
+                  }
+                },
+                shape: {
+                  type: Type.OBJECT,
+                  properties: {
+                    borderRadius: { type: Type.NUMBER },
+                    linkCorners: { type: Type.BOOLEAN },
+                    shadow: {
+                      type: Type.OBJECT,
+                      properties: {
+                         x: { type: Type.NUMBER },
+                         y: { type: Type.NUMBER },
+                         blur: { type: Type.NUMBER }
+                      }
+                    }
+                  }
+                },
+                interactive: {
+                  type: Type.OBJECT,
+                  properties: {
+                    primaryHover: { type: Type.STRING },
+                    primaryFocus: { type: Type.STRING }
+                  }
+                }
+              }
+            },
+            rationale: { type: Type.STRING }
+          }
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    
+    // Merge with initial system to ensure complete object if AI misses partial keys (fallback)
+    const mergedSystem = {
+        ...INITIAL_DESIGN_SYSTEM,
+        ...result.system,
+        colors: { ...INITIAL_DESIGN_SYSTEM.colors, ...result.system?.colors },
+        typography: { ...INITIAL_DESIGN_SYSTEM.typography, ...result.system?.typography },
+        shape: { ...INITIAL_DESIGN_SYSTEM.shape, ...result.system?.shape },
+    };
+
+    return {
+      system: mergedSystem as DesignSystem,
+      rationale: result.rationale || "Generated by AI.",
+    };
+
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
+};

@@ -1,0 +1,5 @@
+{
+  "name": "MonoScale Design Configurator",
+  "description": "A high-precision, monochromatic design system architecting tool powered by Gemini AI. Define tokens, visualize changes in real-time, and ensure accessibility.",
+  "requestFramePermissions": []
+}
