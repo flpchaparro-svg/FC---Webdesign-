@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavigationPanel } from './components/NavigationPanel';
 import { WorkbenchPanel } from './components/WorkbenchPanel';
 import { PreviewCanvas } from './components/PreviewCanvas';
+import { StrategyStudio } from './components/StrategyStudio';
 import { FontLoader } from './components/FontLoader';
 import { INITIAL_DESIGN_SYSTEM } from './constants';
 import { DesignSystem, Category } from './types';
@@ -9,9 +10,15 @@ import { DesignSystem, Category } from './types';
 function App() {
   const [system, setSystem] = useState<DesignSystem>(INITIAL_DESIGN_SYSTEM);
   const [activeCategory, setActiveCategory] = useState<Category>('palette');
+  const [view, setView] = useState<'designer' | 'strategy'>('designer');
 
   const handleSystemUpdate = (newSystem: DesignSystem) => {
     setSystem(newSystem);
+  };
+
+  const handleStrategyComplete = (newSystem: DesignSystem) => {
+      setSystem(newSystem);
+      setView('designer');
   };
 
   return (
@@ -21,12 +28,24 @@ function App() {
         bodyFont={system.typography.bodyFont} 
       />
       
+      {view === 'strategy' && (
+          <StrategyStudio 
+            system={system}
+            onComplete={handleStrategyComplete}
+            onCancel={() => setView('designer')}
+          />
+      )}
+
       {/* Main Split View */}
       <div className="flex-1 flex overflow-hidden">
         
         {/* Column 1: Navigation (80px, Dark Theme) */}
         <div className="w-[80px] flex-shrink-0 z-30 bg-[#1a1a1a]">
-          <NavigationPanel activeCategory={activeCategory} onSelect={setActiveCategory} />
+          <NavigationPanel 
+            activeCategory={activeCategory} 
+            onSelect={setActiveCategory} 
+            onStrategyClick={() => setView('strategy')}
+          />
         </div>
 
         {/* Column 2: Main Preview (Flexible) */}

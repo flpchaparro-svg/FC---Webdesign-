@@ -1,7 +1,7 @@
 export type BusinessType = 'saas' | 'ecommerce' | 'service' | 'portfolio' | 'content';
 export type BrandVibe = 'trustworthy' | 'innovative' | 'luxury' | 'friendly' | 'bold';
 export type ConversionGoal = 'lead' | 'purchase' | 'awareness';
-export type LayoutFormula = 'storybrand' | 'pas' | 'luxury' | 'showcase';
+export type LayoutFormula = 'storybrand' | 'pas' | 'luxury' | 'showcase' | 'authority' | 'funnel' | 'boutique' | 'plg' | 'enterprise' | 'hype' | 'catalog' | 'minimalist';
 
 export interface PageDefinition {
   id: string;
@@ -10,6 +10,14 @@ export interface PageDefinition {
   required: boolean;
   reason: string;
   selected: boolean;
+}
+
+export interface StructureOption {
+  id: LayoutFormula;
+  title: string;
+  description: string;
+  sections: string[];
+  features: string[];
 }
 
 export interface DesignSystem {

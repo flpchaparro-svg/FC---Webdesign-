@@ -1,4 +1,130 @@
-import { BusinessType, PageDefinition } from '../types';
+import { BusinessType, PageDefinition, StructureOption } from '../types';
+
+export const getStructureOptions = (businessType: BusinessType): StructureOption[] => {
+  switch (businessType) {
+    case 'service':
+      return [
+        {
+          id: 'authority',
+          title: 'The Authority',
+          description: 'Builds massive trust before asking for the sale. Best for consultants and agencies.',
+          sections: ['hero', 'social-proof', 'problem', 'solution', 'reviews', 'cta'],
+          features: ['Social Proof High', 'Problem Agitation', 'Trust Signals']
+        },
+        {
+          id: 'funnel',
+          title: 'Direct Response',
+          description: 'High urgency, focused purely on getting the lead. Best for emergency services (Plumbers, Locksmiths).',
+          sections: ['hero', 'services', 'reviews', 'cta'],
+          features: ['Above Fold CTA', 'Minimal Navigation', 'Speed Focus']
+        },
+        {
+          id: 'boutique',
+          title: 'The Boutique',
+          description: 'Focuses on relationship and vibe. Best for interior designers, event planners, and wellness.',
+          sections: ['hero', 'gallery', 'about', 'services', 'cta'],
+          features: ['Visual Heavy', 'Founder Story', 'Aesthetic First']
+        }
+      ];
+    case 'saas':
+      return [
+        {
+          id: 'plg',
+          title: 'Product-Led Growth',
+          description: 'Show the product immediately. Reduce friction. Get them to sign up.',
+          sections: ['hero', 'social-proof', 'features', 'pricing', 'cta'],
+          features: ['Screenshot Hero', 'Transparent Pricing', 'Feature Grid']
+        },
+        {
+          id: 'enterprise',
+          title: 'Enterprise Sales',
+          description: 'Hide pricing, focus on security, compliance, and ROI. "Request Demo".',
+          sections: ['hero', 'social-proof', 'problem', 'solution', 'cta'],
+          features: ['Trust Logos', 'Case Studies', 'No Pricing Table']
+        },
+        {
+          id: 'hype',
+          title: 'Early Access',
+          description: 'For pre-launch products. Build a waitlist.',
+          sections: ['hero', 'problem', 'cta'],
+          features: ['Email Capture', 'Viral Loop', 'Minimalist']
+        }
+      ];
+    case 'ecommerce':
+      return [
+        {
+          id: 'catalog',
+          title: 'The Department Store',
+          description: 'For large inventories. Search and categories are priority.',
+          sections: ['hero', 'collections', 'product', 'cta'],
+          features: ['Category Grid', 'Search Bar', 'Featured Items']
+        },
+        {
+          id: 'hype',
+          title: 'The Drop',
+          description: 'For limited edition or single-product launches.',
+          sections: ['hero', 'product', 'social-proof', 'cta'],
+          features: ['Countdown Timer', 'Big Visuals', 'Scarcity']
+        },
+        {
+          id: 'storybrand',
+          title: 'The Brand Story',
+          description: 'For mission-driven sustainable brands.',
+          sections: ['hero', 'problem', 'solution', 'about', 'product', 'cta'],
+          features: ['Founder Story', 'Values Section', 'Process']
+        }
+      ];
+    case 'portfolio':
+        return [
+            {
+                id: 'showcase',
+                title: 'The Gallery',
+                description: 'Work first. Minimal text.',
+                sections: ['hero', 'gallery', 'cta'],
+                features: ['Masonry Grid', 'Minimal UI']
+            },
+            {
+                id: 'authority',
+                title: 'The Expert',
+                description: 'Case study focused. Problem/Solution format for each project.',
+                sections: ['hero', 'problem', 'solution', 'gallery', 'cta'],
+                features: ['Case Studies', 'Testimonials']
+            },
+            {
+                id: 'boutique',
+                title: 'The Personality',
+                description: 'Focus on the person behind the work.',
+                sections: ['hero', 'about', 'gallery', 'cta'],
+                features: ['Bio Section', 'Philosophy']
+            }
+        ];
+    default:
+        // Default fallback
+        return [
+             {
+                id: 'storybrand',
+                title: 'Classic Layout',
+                description: 'A balanced approach for general content.',
+                sections: ['hero', 'problem', 'solution', 'cta'],
+                features: ['Balanced', 'Clear']
+             },
+             {
+                id: 'minimalist',
+                title: 'Minimalist',
+                description: 'Less is more.',
+                sections: ['hero', 'cta'],
+                features: ['Fast', 'Clean']
+             },
+             {
+                 id: 'authority',
+                 title: 'Content Heavy',
+                 description: 'For blogs and magazines.',
+                 sections: ['hero', 'features', 'cta'],
+                 features: ['Readability', 'Structure']
+             }
+        ];
+  }
+};
 
 export const getRecommendedSitemap = (businessType: BusinessType): PageDefinition[] => {
   const commonHome = { id: 'home', name: 'Home', slug: '/', required: true, reason: 'Primary landing & conversion point', selected: true };

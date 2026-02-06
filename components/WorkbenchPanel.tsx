@@ -5,7 +5,7 @@ import { generateDesignSystem } from '../services/geminiService';
 import { downloadJSON, generateCSS, generateTailwindConfig, generateCursorPrompt } from '../services/exportUtils';
 import { getRecommendedSitemap } from '../services/strategyUtils';
 import { calculateContrastRatio, generateDarkCounterpart } from '../services/utils';
-import { Wand2, RefreshCw, Loader2, Download, Upload, Code, Check, Copy, X, Lightbulb, Map, FileText, Bot } from 'lucide-react';
+import { Wand2, RefreshCw, Loader2, Download, Upload, Code, Check, Copy, X, Lightbulb, Map, FileText, Bot, AlertCircle } from 'lucide-react';
 
 interface WorkbenchPanelProps {
   system: DesignSystem;
@@ -70,35 +70,40 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({ system, onChange
   
   const applyStrategy = (business: BusinessType, vibe: BrandVibe, goal: ConversionGoal) => {
       let formula = system.layout.activeFormula;
-      let sections = system.layout.sections;
+      let sections: string[] = [];
       let hero = system.layout.heroStyle;
       let width = system.layout.containerWidth;
       let spacing = system.layout.sectionSpacing;
 
-      // Logic Engine
-      if (business === 'ecommerce' || vibe === 'luxury') {
-          formula = 'luxury';
-          sections = ['hero', 'gallery', 'product', 'social-proof', 'cta'];
-          hero = 'center';
-          width = 1600; // Wider for luxury
-          spacing = 'spacious';
-      } else if (business === 'service' || goal === 'lead') {
-          formula = 'pas'; // Problem-Agitation-Solution
-          sections = ['hero', 'problem', 'solution', 'social-proof', 'cta'];
+      // Aggressive Logic Engine based on Business Type
+      if (business === 'saas') {
+          formula = 'storybrand';
+          sections = ['hero', 'problem', 'solution', 'pricing', 'cta'];
           hero = 'split';
           width = 1200;
           spacing = 'comfortable';
+      } else if (business === 'service') {
+          formula = 'pas';
+          sections = ['hero', 'social-proof', 'services', 'reviews', 'cta'];
+          hero = 'center';
+          width = 1100;
+          spacing = 'comfortable';
+      } else if (business === 'ecommerce' || vibe === 'luxury') {
+          formula = 'luxury';
+          sections = ['hero', 'gallery', 'product', 'social-proof', 'cta'];
+          hero = 'center';
+          width = 1600;
+          spacing = 'spacious';
       } else if (business === 'portfolio') {
           formula = 'showcase';
           sections = ['hero', 'gallery', 'solution', 'cta'];
           hero = 'minimal';
           width = 1400;
+          spacing = 'spacious';
       } else {
-          // Default SaaS / Content
+          // Fallback
           formula = 'storybrand';
-          sections = ['hero', 'problem', 'solution', 'social-proof', 'pricing', 'cta'];
-          hero = 'split';
-          width = 1200;
+          sections = ['hero', 'problem', 'solution', 'cta'];
       }
 
       // Get Site Architecture Recommendation
@@ -126,6 +131,16 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({ system, onChange
           p.id === pageId ? { ...p, selected: !p.selected } : p
       );
       updateSystem('layout', 'pages', updatedPages);
+  };
+
+  const getStrategyExplanation = () => {
+      switch(system.layout.businessType) {
+          case 'saas': return "Strategy: Focus on Problem/Solution. Users buy software to fix pain, not for aesthetics.";
+          case 'service': return "Strategy: Focus on Trust. 'Social Proof' and 'Reviews' are prioritized to build credibility immediately.";
+          case 'ecommerce': return "Strategy: Focus on Desire. Reduce friction and show high-quality imagery.";
+          case 'portfolio': return "Strategy: Minimalist. Let the work speak for itself. Remove distracting navigation.";
+          default: return "Select a business type to see the strategy.";
+      }
   };
 
   // --- Reusable Controls ---
@@ -321,6 +336,13 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({ system, onChange
                             <option value="portfolio">Portfolio / Personal Site</option>
                         </select>
                      </div>
+                     
+                     {/* THE WHY BOX */}
+                     <div className="p-2 bg-yellow-100 border border-yellow-300 rounded text-[10px] text-yellow-900 flex items-start gap-2 leading-relaxed">
+                         <AlertCircle size={12} className="shrink-0 mt-0.5" />
+                         {getStrategyExplanation()}
+                     </div>
+
                      <div>
                         <label className="text-xs font-bold uppercase block mb-1">Brand Vibe?</label>
                         <select 
