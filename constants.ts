@@ -23,10 +23,32 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
     scaleRatio: 1.25, // Major Third
     lineHeightHeading: 1.2,
     lineHeightBody: 1.5,
+    letterSpacing: 0,
+    textTransform: 'none',
+    textDecoration: 'none',
+  },
+  layout: {
+    businessType: 'saas',
+    brandVibe: 'innovative',
+    conversionGoal: 'lead',
+    activeFormula: 'storybrand',
+    sections: ['hero', 'problem', 'solution', 'social-proof', 'cta'],
+    
+    // Default Pages for SaaS
+    pages: [
+        { id: 'p1', name: 'Home', slug: '/', required: true, reason: 'Landing page conversion', selected: true },
+        { id: 'p2', name: 'Features', slug: '/features', required: true, reason: 'Product capabilities', selected: true },
+        { id: 'p3', name: 'Pricing', slug: '/pricing', required: true, reason: 'Purchase decision', selected: true },
+        { id: 'p4', name: 'Docs', slug: '/docs', required: false, reason: 'User support & SEO', selected: true },
+        { id: 'p5', name: 'Login', slug: '/login', required: true, reason: 'App access', selected: true },
+    ],
+
+    heroStyle: 'split',
+    sectionSpacing: 'comfortable',
+    containerWidth: 1200,
   },
   spacing: {
     baseUnit: 8,
-    maxContainerWidth: 1200,
   },
   shape: {
     borderRadius: 8,
@@ -42,6 +64,8 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
     borderWidth: 2,
     textTransform: 'none',
     fontWeight: '600',
+    borderStyle: 'solid',
+    hoverScale: 1.0,
     applyShadow: false,
     variants: {
       primary: { bg: '#3B82F6', text: '#FFFFFF', border: 'transparent' },

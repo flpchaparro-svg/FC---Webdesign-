@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
-import { Header } from './components/Header';
-import { ControlPanel } from './components/ControlPanel';
+import { NavigationPanel } from './components/NavigationPanel';
+import { WorkbenchPanel } from './components/WorkbenchPanel';
 import { PreviewCanvas } from './components/PreviewCanvas';
 import { FontLoader } from './components/FontLoader';
 import { INITIAL_DESIGN_SYSTEM } from './constants';
-import { DesignSystem } from './types';
+import { DesignSystem, Category } from './types';
 
 function App() {
   const [system, setSystem] = useState<DesignSystem>(INITIAL_DESIGN_SYSTEM);
-  const [rationale, setRationale] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<Category>('palette');
 
   const handleSystemUpdate = (newSystem: DesignSystem) => {
     setSystem(newSystem);
-  };
-
-  const handleAiUpdate = (newSystem: DesignSystem, newRationale: string) => {
-    setSystem(newSystem);
-    setRationale(newRationale);
   };
 
   return (
@@ -26,20 +21,22 @@ function App() {
         bodyFont={system.typography.bodyFont} 
       />
       
-      {/* Top Header */}
-      <Header onSystemUpdate={handleAiUpdate} system={system} currentRationale={rationale} />
-
       {/* Main Split View */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left: Controls (25%) */}
-        <div className="w-1/4 h-full min-w-[320px] max-w-[400px]">
-          <ControlPanel system={system} onChange={handleSystemUpdate} />
+        {/* Column 1: Navigation (80px, Dark Theme) */}
+        <div className="w-[80px] flex-shrink-0 z-30 bg-[#1a1a1a]">
+          <NavigationPanel activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
 
-        {/* Right: Preview (Flexible) */}
-        <div className="flex-1 h-full shadow-2xl z-10 overflow-hidden relative border-l-2 border-[#1a1a1a]">
-          <PreviewCanvas system={system} />
+        {/* Column 2: Main Preview (Flexible) */}
+        <div className="flex-1 h-full shadow-inner z-10 overflow-hidden relative bg-gray-50">
+          <PreviewCanvas system={system} activeCategory={activeCategory} />
+        </div>
+
+        {/* Column 3: The Workbench (360px) */}
+        <div className="w-[360px] flex-shrink-0 z-20 border-l-2 border-[#1a1a1a] bg-[#FFF2EC] shadow-2xl">
+          <WorkbenchPanel system={system} onChange={handleSystemUpdate} category={activeCategory} />
         </div>
 
       </div>

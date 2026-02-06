@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
-import { DesignSystem } from '../types';
-import { Sun, Moon, Monitor, Tablet, Smartphone, ArrowRight, AlertTriangle, CheckCircle, Star, LayoutTemplate, MousePointer2 } from 'lucide-react';
+import { DesignSystem, Category } from '../types';
+import { Sun, Moon, Monitor, Tablet, Smartphone, ArrowRight, CheckCircle, LayoutTemplate, MousePointer2, ShieldCheck, Zap, TrendingUp, Users, Box, Grid, Image as ImageIcon, ShoppingBag, Star, Mail } from 'lucide-react';
 
 interface PreviewCanvasProps {
   system: DesignSystem;
+  activeCategory: Category;
 }
 
-export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
+export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system, activeCategory }) => {
   const [mode, setMode] = useState<'light' | 'dark'>('light');
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [viewMode, setViewMode] = useState<'interactive' | 'styleguide'>('interactive');
 
   const colors = mode === 'light' ? system.colors.light : system.colors.dark;
+  // If activeCategory is 'layout', force wireframe visuals
+  const isWireframe = activeCategory === 'layout';
 
-  // Dynamic styles based on system tokens
+  // Spacing Multiplier Map
+  const getSpacing = (style: string) => {
+      switch(style) {
+          case 'compact': return 'calc(var(--unit) * 4)';
+          case 'comfortable': return 'calc(var(--unit) * 8)';
+          case 'spacious': return 'calc(var(--unit) * 16)';
+          default: return 'calc(var(--unit) * 8)';
+      }
+  };
+
   const style = {
-    '--bg': colors.canvas,
-    '--text': colors.text,
+    '--bg': isWireframe ? '#ffffff' : colors.canvas,
+    '--text': isWireframe ? '#1a1a1a' : colors.text,
     '--primary': system.colors.primary,
     '--secondary': system.colors.secondary,
     '--accent': system.colors.accent,
@@ -27,7 +39,7 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
     '--font-head': system.typography.headingFont,
     '--font-body': system.typography.bodyFont,
     '--radius': `${system.shape.borderRadius}px`,
-    '--shadow': `${system.shape.shadow.x}px ${system.shape.shadow.y}px ${system.shape.shadow.blur}px rgba(0,0,0,0.2)`,
+    '--shadow': isWireframe ? 'none' : `${system.shape.shadow.x}px ${system.shape.shadow.y}px ${system.shape.shadow.blur}px rgba(0,0,0,0.2)`,
     '--base-size': `${system.typography.baseSize}px`,
     '--scale': system.typography.scaleRatio,
     // Headings
@@ -41,24 +53,37 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
     // Line Heights
     '--lh-h': system.typography.lineHeightHeading,
     '--lh-b': system.typography.lineHeightBody,
-    // Spacing
+    // Advanced Typography
+    '--type-spacing': `${system.typography.letterSpacing}em`,
+    '--type-transform': system.typography.textTransform,
+    '--type-decoration': system.typography.textDecoration,
+    // Layout & Spacing
     '--unit': `${system.spacing.baseUnit}px`,
-    '--container-max': `${system.spacing.maxContainerWidth}px`,
+    '--container-max': `${system.layout.containerWidth}px`,
+    '--section-gap': getSpacing(system.layout.sectionSpacing),
     // Button Architecture
     '--btn-radius': `${system.buttons.radius}px`,
     '--btn-border': `${system.buttons.borderWidth}px`,
     '--btn-transform': system.buttons.textTransform,
     '--btn-weight': system.buttons.fontWeight,
     '--btn-shadow': system.buttons.applyShadow ? 'var(--shadow)' : 'none',
+    '--btn-border-style': system.buttons.borderStyle,
+    '--btn-hover-scale': system.buttons.hoverScale,
     // Input Architecture
     '--input-radius': `${system.inputs.radius}px`,
     '--input-border': `${system.inputs.borderWidth}px`,
-    '--input-bg': system.inputs.baseBg,
+    '--input-bg': isWireframe ? '#fff' : system.inputs.baseBg,
     '--input-border-color': system.inputs.borderColor,
     '--ring-width': `${system.inputs.focusRingWidth}px`,
     // Motion
     '--motion-duration': `${system.animation.duration}ms`,
     '--motion-ease': system.animation.easing,
+    
+    // Wireframe Specific Overrides
+    ...(isWireframe && {
+        backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+    })
   } as React.CSSProperties;
 
   const getContainerWidth = () => {
@@ -79,350 +104,306 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
     </div>
   );
 
-  return (
-    <div className="h-full flex flex-col border-r-2 border-[#1a1a1a] bg-[#e5e5e5]">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-[#1a1a1a] bg-[#FFF2EC] shrink-0 z-20">
-        
-        <div className="flex gap-4">
-             {/* View Mode Toggle */}
-             <div className="flex bg-white border border-[#1a1a1a] rounded-sm overflow-hidden shadow-sm">
-                <button
-                    onClick={() => setViewMode('interactive')}
-                    className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-colors ${viewMode === 'interactive' ? 'bg-[#1a1a1a] text-white' : 'bg-transparent text-[#1a1a1a] hover:bg-gray-100'}`}
-                >
-                    <MousePointer2 size={14} /> Preview
-                </button>
-                <div className="w-[1px] bg-[#1a1a1a]"></div>
-                <button
-                    onClick={() => setViewMode('styleguide')}
-                    className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-colors ${viewMode === 'styleguide' ? 'bg-[#1a1a1a] text-white' : 'bg-transparent text-[#1a1a1a] hover:bg-gray-100'}`}
-                >
-                    <LayoutTemplate size={14} /> Docs
-                </button>
+  // --- Sub Components ---
+  
+  const SectionContainer = ({ children, className = '' }: any) => (
+      <section 
+        className={`border-b border-current border-opacity-10 ${isWireframe ? 'border-dashed border-2 border-opacity-20 border-blue-300' : ''} ${className}`} 
+        style={{ padding: 'var(--section-gap) var(--unit)' }}
+      >
+          {isWireframe && <div className="absolute top-2 left-2 text-[10px] font-mono bg-blue-100 text-blue-800 px-1">SECTION</div>}
+          <div className="max-w-[var(--container-max)] mx-auto relative">
+            {children}
+          </div>
+      </section>
+  );
+
+  const HeroSection = () => (
+    <SectionContainer>
+        <div className={`flex ${system.layout.heroStyle === 'center' || system.layout.heroStyle === 'minimal' ? 'flex-col items-center text-center' : 'flex-col md:flex-row items-center'} gap-[calc(var(--unit)*6)]`}>
+            {/* Text Content */}
+            <div className={`flex-1 space-y-[calc(var(--unit)*3)] ${system.layout.heroStyle === 'center' ? 'max-w-3xl' : ''}`}>
+                <h1 style={{ 
+                    fontFamily: 'var(--font-head)', fontSize: 'var(--h1)', lineHeight: 'var(--lh-h)', 
+                    fontWeight: 800, letterSpacing: 'var(--type-spacing)', 
+                    textTransform: system.typography.textTransform as any 
+                }}>
+                    {isWireframe ? 'Hero Headline Goes Here' : 'Build faster with precision tokens.'}
+                </h1>
+                {system.layout.heroStyle !== 'minimal' && (
+                    <p style={{ fontSize: 'var(--h4)', lineHeight: 'var(--lh-b)', opacity: 0.8 }}>
+                        {isWireframe ? 'Subheadline text to explain the value proposition in 2-3 lines.' : 'Stop guessing spacing values. Define your grid, spacing, and rhythm once, and deploy everywhere.'}
+                    </p>
+                )}
+                <div className={`flex gap-4 pt-2 ${system.layout.heroStyle === 'center' || system.layout.heroStyle === 'minimal' ? 'justify-center' : ''}`}>
+                    <button style={{ 
+                        backgroundColor: isWireframe ? 'transparent' : 'var(--primary)', color: isWireframe ? 'currentColor' : '#fff', 
+                        padding: '16px 32px', borderRadius: 'var(--btn-radius)', 
+                        borderWidth: 'var(--btn-border)', borderStyle: 'var(--btn-border-style)', borderColor: isWireframe ? 'currentColor' : 'transparent',
+                        fontWeight: 'var(--btn-weight)' as any, textTransform: system.buttons.textTransform as any,
+                        boxShadow: 'var(--btn-shadow)', transform: 'scale(1)',
+                        transition: 'transform 0.2s'
+                    }} className="hover:scale-[var(--btn-hover-scale)]">Primary Action</button>
+                    
+                    <button style={{ 
+                        backgroundColor: 'transparent', color: 'var(--text)', 
+                        padding: '16px 32px', borderRadius: 'var(--btn-radius)', 
+                        borderWidth: 'var(--btn-border)', borderStyle: 'var(--btn-border-style)', borderColor: 'currentColor',
+                        fontWeight: 'var(--btn-weight)' as any, textTransform: system.buttons.textTransform as any
+                    }}>Secondary</button>
+                </div>
             </div>
 
-            {/* Theme Toggle (Only for Interactive) */}
-            {viewMode === 'interactive' && (
-                <div className="flex bg-white border border-[#1a1a1a] rounded-sm overflow-hidden shadow-sm">
-                    <button
-                        onClick={() => setMode('light')}
-                        className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-colors ${mode === 'light' ? 'bg-[#1a1a1a] text-white' : 'bg-transparent text-[#1a1a1a] hover:bg-gray-100'}`}
-                    >
-                        <Sun size={14} /> Light
-                    </button>
-                    <div className="w-[1px] bg-[#1a1a1a]"></div>
-                    <button
-                        onClick={() => setMode('dark')}
-                        className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-colors ${mode === 'dark' ? 'bg-[#1a1a1a] text-white' : 'bg-transparent text-[#1a1a1a] hover:bg-gray-100'}`}
-                    >
-                        <Moon size={14} /> Dark
-                    </button>
+            {/* Visual/Image */}
+            {system.layout.heroStyle !== 'minimal' && (
+                <div className="flex-1 w-full">
+                    <div className="aspect-video bg-current opacity-5 w-full rounded-[var(--radius)] flex items-center justify-center border-2 border-dashed border-current">
+                        {isWireframe ? <ImageIcon size={48} className="opacity-20"/> : <span className="opacity-50 font-mono text-sm">Hero Asset</span>}
+                    </div>
                 </div>
             )}
         </div>
+    </SectionContainer>
+  );
 
-        {/* Viewport Toggle (Only for Interactive) */}
-        {viewMode === 'interactive' && (
-            <div className="flex gap-2">
-                {[
-                    { id: 'desktop', icon: Monitor, label: 'Desktop' },
-                    { id: 'tablet', icon: Tablet, label: 'Tablet' },
-                    { id: 'mobile', icon: Smartphone, label: 'Mobile' },
-                ].map((v) => (
-                    <button
-                        key={v.id}
-                        onClick={() => setViewport(v.id as any)}
-                        className={`p-2 border border-[#1a1a1a] rounded-sm transition-all ${viewport === v.id ? 'bg-[#1a1a1a] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)]' : 'bg-white text-[#1a1a1a] hover:bg-gray-100'}`}
-                        title={v.label}
-                    >
-                        <v.icon size={16} />
-                    </button>
-                ))}
+  const ProblemSection = () => (
+      <SectionContainer className="bg-current bg-opacity-[0.03]">
+            <div className="text-center mb-[calc(var(--unit)*6)]">
+            <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', fontWeight: 700 }}>Identify the Pain</h2>
+            <p className="mt-4 opacity-70" style={{ fontSize: 'var(--body)' }}>Three columns to agitate the problem.</p>
             </div>
-        )}
-      </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-[calc(var(--unit)*4)]">
+            {[1, 2, 3].map((i) => (
+                <div key={i} className="p-[calc(var(--unit)*4)] bg-[var(--bg)] border border-current border-opacity-10 shadow-sm" style={{ borderRadius: 'var(--radius)' }}>
+                    {isWireframe ? <Box className="mb-4 text-[var(--accent)]" size={32} /> : <ShieldCheck className="mb-4 text-[var(--accent)]" size={32} />}
+                    <h3 style={{ fontSize: 'var(--h4)', fontWeight: 700, marginBottom: '8px' }}>Pain Point {i}</h3>
+                    <p style={{ fontSize: 'var(--body)', opacity: 0.7 }}>Description of the problem the user faces.</p>
+                </div>
+            ))}
+            </div>
+      </SectionContainer>
+  );
 
+  const ValuePropSection = () => (
+    <SectionContainer>
+        <div className="flex flex-col md:flex-row-reverse items-center gap-[calc(var(--unit)*8)]">
+        <div className="flex-1 space-y-4">
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--primary)' }}>The Solution</span>
+            <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', fontWeight: 700 }}>How we solve it</h2>
+            <p style={{ fontSize: 'var(--h5)', opacity: 0.8, lineHeight: 'var(--lh-b)' }}>
+                Detailed explanation of the product value. Use bullet points for readability.
+            </p>
+            <ul className="space-y-2 mt-4 opacity-80">
+                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-[var(--success)]"/> Benefit One</li>
+                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-[var(--success)]"/> Benefit Two</li>
+                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-[var(--success)]"/> Benefit Three</li>
+            </ul>
+        </div>
+        <div className="flex-1 w-full h-80 bg-[var(--secondary)] bg-opacity-10 rounded-[var(--radius)] flex items-center justify-center border border-current border-opacity-10">
+            {isWireframe ? <Grid size={48} className="opacity-20"/> : <span className="opacity-40 font-mono">Product Shot</span>}
+        </div>
+        </div>
+    </SectionContainer>
+  );
+
+  const GallerySection = () => (
+      <SectionContainer>
+          <div className="text-center mb-[calc(var(--unit)*6)]">
+            <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', fontWeight: 700 }}>Selected Works</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className={`bg-gray-200 w-full rounded-[var(--radius)] flex items-center justify-center ${i === 1 || i === 4 ? 'col-span-2 aspect-[2/1]' : 'aspect-square'}`}>
+                       {isWireframe ? <ImageIcon className="opacity-20"/> : <span className="text-xs font-mono opacity-40">Img {i}</span>}
+                  </div>
+              ))}
+          </div>
+      </SectionContainer>
+  );
+
+  const PricingSection = () => (
+    <SectionContainer className="bg-current bg-opacity-[0.03]">
+        <div className="text-center mb-[calc(var(--unit)*6)]">
+          <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', fontWeight: 700 }}>Simple Pricing</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1,2,3].map(i => (
+                <div key={i} className={`p-8 bg-[var(--bg)] border border-current border-opacity-10 rounded-[var(--radius)] flex flex-col ${i === 2 ? 'ring-2 ring-[var(--primary)]' : ''}`}>
+                    <h3 className="font-bold mb-2">Plan {i}</h3>
+                    <div className="text-3xl font-bold mb-4">$29<span className="text-sm font-normal">/mo</span></div>
+                    <ul className="space-y-2 mb-8 opacity-70 text-sm flex-1">
+                        <li>Feature A</li>
+                        <li>Feature B</li>
+                    </ul>
+                    <button style={{ 
+                        backgroundColor: i === 2 ? 'var(--primary)' : 'transparent',
+                        color: i === 2 ? '#fff' : 'currentColor',
+                        padding: '12px',
+                        borderRadius: 'var(--btn-radius)',
+                        border: '1px solid currentColor'
+                    }}>Choose</button>
+                </div>
+            ))}
+        </div>
+    </SectionContainer>
+  );
+
+  const SocialProofSection = () => (
+    <section className="border-y border-current border-opacity-10" style={{ padding: 'calc(var(--section-gap) / 2) var(--unit)' }}>
+        <div className="max-w-[var(--container-max)] mx-auto text-center">
+            <p className="text-xs font-bold uppercase tracking-widest opacity-50 mb-6">Trusted by leading companies</p>
+            <div className="flex justify-center items-center gap-8 md:gap-16 opacity-40 grayscale flex-wrap">
+                {/* Mock Logos */}
+                <div className="text-xl font-black font-serif">ACME</div>
+                <div className="text-xl font-bold font-sans tracking-tighter">inter_global</div>
+                <div className="text-xl font-medium font-mono">Struct.io</div>
+                <div className="text-xl font-bold italic">VaporWare</div>
+            </div>
+        </div>
+    </section>
+  );
+
+  const CtaSection = () => (
+    <SectionContainer>
+        <div className="text-center p-[calc(var(--unit)*8)] rounded-[var(--radius)] relative overflow-hidden border border-current" style={{ backgroundColor: isWireframe ? 'transparent' : 'var(--primary)', color: isWireframe ? 'currentColor' : '#fff' }}>
+                <div className="relative z-10 space-y-6">
+                <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', fontWeight: 800 }}>Ready to start?</h2>
+                <p className="max-w-2xl mx-auto opacity-90" style={{ fontSize: 'var(--h5)' }}>
+                    Stop rebuilding the same components. Start shipping.
+                </p>
+                <button style={{ 
+                    backgroundColor: isWireframe ? 'currentColor' : 'var(--bg)', color: isWireframe ? 'var(--bg)' : 'var(--text)', 
+                    padding: '16px 32px', borderRadius: 'var(--btn-radius)', 
+                    fontWeight: 'var(--btn-weight)' as any,
+                    marginTop: '16px'
+                }}>Get Access Now</button>
+                </div>
+        </div>
+    </SectionContainer>
+  );
+
+  // Map string IDs to components
+  const renderSection = (id: string) => {
+      switch(id) {
+          case 'hero': return <HeroSection key={id} />;
+          case 'problem': return <ProblemSection key={id} />;
+          case 'solution': return <ValuePropSection key={id} />;
+          case 'social-proof': return <SocialProofSection key={id} />;
+          case 'gallery': return <GallerySection key={id} />;
+          case 'pricing': return <PricingSection key={id} />;
+          case 'product': return <ValuePropSection key={id} />; // Reuse value prop for now
+          case 'cta': return <CtaSection key={id} />;
+          default: return null;
+      }
+  };
+
+  return (
+    <div className="h-full flex flex-col border-r-2 border-[#1a1a1a] bg-gray-50">
+      
       {/* Canvas Area */}
-      <div className="flex-1 overflow-hidden flex flex-col items-center bg-[#e5e5e5] relative">
+      <div className="flex-1 overflow-hidden flex flex-col items-center relative">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
         
+        {/* Floating Toolbar inside Canvas */}
+        <div className="absolute top-4 z-50 flex gap-4 bg-[#FFF2EC] border-2 border-[#1a1a1a] p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+             <div className="flex bg-white border border-[#1a1a1a]">
+                <button onClick={() => setViewMode('interactive')} className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 ${viewMode === 'interactive' ? 'bg-[#1a1a1a] text-white' : 'hover:bg-gray-100'}`}>
+                    <MousePointer2 size={14} /> Preview
+                </button>
+                <div className="w-[1px] bg-[#1a1a1a]"></div>
+                <button onClick={() => setViewMode('styleguide')} className={`px-3 py-1.5 text-xs font-bold flex items-center gap-2 ${viewMode === 'styleguide' ? 'bg-[#1a1a1a] text-white' : 'hover:bg-gray-100'}`}>
+                    <LayoutTemplate size={14} /> Docs
+                </button>
+            </div>
+            {viewMode === 'interactive' && (
+                <>
+                <div className="w-[1px] bg-[#1a1a1a] opacity-20"></div>
+                <div className="flex bg-white border border-[#1a1a1a]">
+                    <button onClick={() => setMode('light')} className={`px-3 py-1.5 text-xs font-bold ${mode === 'light' ? 'bg-[#1a1a1a] text-white' : 'hover:bg-gray-100'}`}><Sun size={14}/></button>
+                    <button onClick={() => setMode('dark')} className={`px-3 py-1.5 text-xs font-bold ${mode === 'dark' ? 'bg-[#1a1a1a] text-white' : 'hover:bg-gray-100'}`}><Moon size={14}/></button>
+                </div>
+                <div className="flex gap-1">
+                    <button onClick={() => setViewport('desktop')} className={`p-1.5 border border-[#1a1a1a] ${viewport === 'desktop' ? 'bg-[#1a1a1a] text-white' : 'bg-white'}`}><Monitor size={14}/></button>
+                    <button onClick={() => setViewport('tablet')} className={`p-1.5 border border-[#1a1a1a] ${viewport === 'tablet' ? 'bg-[#1a1a1a] text-white' : 'bg-white'}`}><Tablet size={14}/></button>
+                    <button onClick={() => setViewport('mobile')} className={`p-1.5 border border-[#1a1a1a] ${viewport === 'mobile' ? 'bg-[#1a1a1a] text-white' : 'bg-white'}`}><Smartphone size={14}/></button>
+                </div>
+                </>
+            )}
+        </div>
+
         {viewMode === 'interactive' ? (
-            /* Interactive Mode */
+            /* Interactive Landing Page Mode */
             <div
-                className={`flex-col relative transition-all duration-300 ease-in-out h-full overflow-y-auto ${viewport !== 'desktop' ? 'shadow-2xl border-x-2 border-[#1a1a1a]' : ''}`}
+                className={`flex-col relative transition-all duration-300 ease-in-out h-full overflow-y-auto ${viewport !== 'desktop' ? 'mt-20 border-x-2 border-y-2 border-[#1a1a1a] shadow-2xl' : ''}`}
                 style={{
                     ...style,
                     width: getContainerWidth(),
+                    height: viewport !== 'desktop' ? '80%' : '100%',
                     backgroundColor: 'var(--bg)',
                     color: 'var(--text)',
                     fontFamily: 'var(--font-body)',
                 }}
             >
-                <div className="w-full min-h-full p-[calc(var(--unit)*4)]">
-                    <div className="max-w-[var(--container-max)] mx-auto flex flex-col gap-[calc(var(--unit)*6)]">
-                         {/* Header / Intro */}
-                        <div className="pb-[calc(var(--unit)*4)] border-b border-current border-opacity-10">
-                            <div className="flex items-center justify-between mb-[calc(var(--unit)*2)]">
-                                <span className="inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-[0.2em] border border-current opacity-60">
-                                    System v3.0
-                                </span>
-                                <div className="flex gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-[var(--primary)]"></span>
-                                    <span className="w-3 h-3 rounded-full bg-[var(--secondary)]"></span>
-                                    <span className="w-3 h-3 rounded-full bg-[var(--accent)]"></span>
-                                </div>
-                            </div>
-                            <h1 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h1)', lineHeight: 'var(--lh-h)', fontWeight: 700 }}>
-                                Global Design Tokens
-                            </h1>
-                            <p style={{ fontSize: 'var(--h3)', lineHeight: 'var(--lh-b)' }} className="mt-[calc(var(--unit)*2)] opacity-70 max-w-2xl">
-                                A live demonstration of the extended color palette, responsive layout sizing, and typography scale.
-                            </p>
+                {/* Navbar */}
+                <nav className="w-full px-[var(--unit)] py-[calc(var(--unit)*2)] border-b border-current border-opacity-10 sticky top-0 bg-[var(--bg)] z-40 bg-opacity-95 backdrop-blur-sm">
+                    <div className="max-w-[var(--container-max)] mx-auto flex justify-between items-center">
+                        <span className="font-bold text-lg tracking-tight" style={{ fontFamily: 'var(--font-head)' }}>MonoScale</span>
+                        <div className="hidden md:flex gap-6 text-sm font-medium opacity-80">
+                            <a href="#" className="hover:opacity-100">Product</a>
+                            <a href="#" className="hover:opacity-100">Solutions</a>
+                            <a href="#" className="hover:opacity-100">Pricing</a>
                         </div>
-
-                        {/* Alerts & Messages (New Colors) */}
-                        <section className="grid gap-[calc(var(--unit)*2)]">
-                            <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit))]">System Messages</h6>
-                            
-                            <div className="p-[calc(var(--unit)*2)] flex items-start gap-3 border-l-4" style={{ 
-                                backgroundColor: 'rgba(var(--success-rgb), 0.1)', 
-                                borderColor: 'var(--success)',
-                                borderRadius: 'var(--radius)'
-                            }}>
-                                <CheckCircle size={20} style={{ color: 'var(--success)' }} />
-                                <div>
-                                    <h5 className="text-sm font-bold" style={{ color: 'var(--success)' }}>Success Message</h5>
-                                    <p className="text-xs opacity-80 mt-1">Your changes have been saved successfully to the local database.</p>
-                                </div>
-                            </div>
-
-                            <div className="p-[calc(var(--unit)*2)] flex items-start gap-3 border-l-4" style={{ 
-                                backgroundColor: 'rgba(var(--error-rgb), 0.1)', 
-                                borderColor: 'var(--error)',
-                                borderRadius: 'var(--radius)'
-                            }}>
-                                <AlertTriangle size={20} style={{ color: 'var(--error)' }} />
-                                <div>
-                                    <h5 className="text-sm font-bold" style={{ color: 'var(--error)' }}>Critical Error</h5>
-                                    <p className="text-xs opacity-80 mt-1">Unable to connect to the server. Please check your connection.</p>
-                                </div>
-                            </div>
-
-                            <div className="p-[calc(var(--unit)*2)] flex items-center justify-between border border-current border-opacity-10" style={{ 
-                                borderRadius: 'var(--radius)',
-                                backgroundColor: 'var(--bg)'
-                            }}>
-                                <div className="flex items-center gap-2">
-                                    <Star size={16} style={{ fill: 'var(--accent)', color: 'var(--accent)' }} />
-                                    <span className="text-xs font-bold">Premium Feature Unlocked</span>
-                                </div>
-                                <span className="text-[10px] font-bold px-2 py-1 bg-[var(--accent)] text-white rounded-full">NEW</span>
-                            </div>
-                        </section>
-
-                        {/* Typography Scale Section */}
-                        <section>
-                            <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit)*2)]">Type Scale</h6>
-                            <div className="space-y-[calc(var(--unit)*2)]">
-                                <div>
-                                    <span className="text-[10px] opacity-40 block mb-1 font-mono">H1 / {Math.round(system.typography.baseSize * Math.pow(system.typography.scaleRatio, 5))}px</span>
-                                    <h1 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h1)', lineHeight: 'var(--lh-h)', fontWeight: 700 }}>The quick brown fox</h1>
-                                </div>
-                                <div>
-                                    <span className="text-[10px] opacity-40 block mb-1 font-mono">H2 / {Math.round(system.typography.baseSize * Math.pow(system.typography.scaleRatio, 4))}px</span>
-                                    <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h2)', lineHeight: 'var(--lh-h)', fontWeight: 700 }}>Jumps over the lazy dog</h2>
-                                </div>
-                                <div>
-                                    <span className="text-[10px] opacity-40 block mb-1 font-mono">H3 / {Math.round(system.typography.baseSize * Math.pow(system.typography.scaleRatio, 3))}px</span>
-                                    <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 'var(--h3)', lineHeight: 'var(--lh-h)', fontWeight: 700 }}>Visual hierarchy matters</h3>
-                                </div>
-                            </div>
-                        </section>
-
-                         {/* Body Text Section */}
-                         <section className="grid grid-cols-1 md:grid-cols-2 gap-[calc(var(--unit)*4)]">
-                            <div>
-                                 <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit)*2)]">Body Copy</h6>
-                                 <p style={{ fontSize: 'var(--body)', lineHeight: 'var(--lh-b)' }} className="opacity-90">
-                                    This paragraph demonstrates the primary body style. It's crucial for long-form content readability.
-                                    The spacing between lines is governed by the line-height token, ensuring the text breathes properly.
-                                    <br/><br/>
-                                    We can also test <a href="#" style={{ color: 'var(--primary)', transition: 'all var(--motion-duration) var(--motion-ease)' }} className="underline decoration-2 underline-offset-4 hover:opacity-80">inline links</a> within the text block.
-                                    They should be clearly distinguishable from the surrounding text.
-                                </p>
-                            </div>
-                            <div className="p-[calc(var(--unit)*3)] border border-current border-opacity-10 flex flex-col justify-center gap-4" style={{ borderRadius: 'var(--radius)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-                                 <div className="flex items-center gap-3">
-                                     <div className="w-10 h-10 rounded-full bg-[var(--secondary)] flex items-center justify-center text-white font-bold">JD</div>
-                                     <div>
-                                         <p className="text-sm font-bold">John Doe</p>
-                                         <p className="text-xs opacity-60">Product Designer</p>
-                                     </div>
-                                 </div>
-                                 <p className="text-sm italic opacity-70">"This system provides an incredible level of fidelity for rapid prototyping."</p>
-                            </div>
-                        </section>
-                        
-                         {/* Button Architecture Section */}
-                        <section>
-                            <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit)*2)]">Buttons & Actions</h6>
-                            
-                            <div className="p-[calc(var(--unit)*4)] border border-current border-opacity-20 bg-current bg-opacity-[0.02]" style={{ borderRadius: 'var(--radius)' }}>
-                                <div className="grid gap-[calc(var(--unit)*3)] max-w-md">
-                                    
-                                    {/* Buttons */}
-                                    <div className="flex flex-wrap items-center gap-[calc(var(--unit)*2)] mt-[calc(var(--unit))]">
-                                        <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] flex items-center gap-2"
-                                            style={{ 
-                                                backgroundColor: system.buttons.variants.primary.bg, 
-                                                color: system.buttons.variants.primary.text,
-                                                borderColor: system.buttons.variants.primary.border,
-                                                borderStyle: 'solid',
-                                                borderRadius: 'var(--btn-radius)',
-                                                borderWidth: 'var(--btn-border)',
-                                                textTransform: system.buttons.textTransform,
-                                                fontWeight: system.buttons.fontWeight,
-                                                boxShadow: 'var(--btn-shadow)',
-                                                transition: 'all var(--motion-duration) var(--motion-ease)'
-                                            }}
-                                        >
-                                            Primary Action <ArrowRight size={16} />
-                                        </button>
-
-                                        <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform active:scale-95 hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:ring-[var(--secondary)]"
-                                            style={{ 
-                                                backgroundColor: system.buttons.variants.secondary.bg,
-                                                color: system.buttons.variants.secondary.text,
-                                                borderColor: system.buttons.variants.secondary.border,
-                                                borderStyle: 'solid',
-                                                borderRadius: 'var(--btn-radius)',
-                                                borderWidth: 'var(--btn-border)',
-                                                textTransform: system.buttons.textTransform,
-                                                fontWeight: system.buttons.fontWeight,
-                                                boxShadow: 'var(--btn-shadow)',
-                                                transition: 'all var(--motion-duration) var(--motion-ease)'
-                                            }}
-                                        >
-                                            Secondary
-                                        </button>
-
-                                        <button 
-                                            className="px-[calc(var(--unit)*3)] py-[calc(var(--unit)*1.5)] transform hover:bg-opacity-10"
-                                            style={{ 
-                                                backgroundColor: 'transparent',
-                                                color: system.buttons.variants.ghost.text,
-                                                borderColor: system.buttons.variants.ghost.border,
-                                                borderStyle: 'solid',
-                                                borderRadius: 'var(--btn-radius)',
-                                                borderWidth: 'var(--btn-border)',
-                                                textTransform: system.buttons.textTransform,
-                                                fontWeight: system.buttons.fontWeight,
-                                                transition: 'all var(--motion-duration) var(--motion-ease)'
-                                                // Ghost usually doesn't have shadow unless forced
-                                            }}
-                                        >
-                                            Ghost Action
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Form & Input Section */}
-                        <section>
-                            <h6 className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-[calc(var(--unit)*2)]">Form Architecture</h6>
-                            <div className="p-[calc(var(--unit)*4)] border border-current border-opacity-20 bg-current bg-opacity-[0.02]" style={{ borderRadius: 'var(--radius)' }}>
-                                <div className="max-w-md space-y-4">
-                                    <div>
-                                        <label className="text-xs font-bold uppercase tracking-wider block mb-2 opacity-80">Email Address</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="e.g. name@company.com"
-                                            className="w-full px-4 py-3 outline-none focus:ring-[length:var(--ring-width)] focus:ring-[var(--primary)] focus:border-[var(--primary)] placeholder-current placeholder-opacity-40"
-                                            style={{
-                                                backgroundColor: 'var(--input-bg)',
-                                                borderColor: 'var(--input-border-color)',
-                                                borderWidth: 'var(--input-border)',
-                                                borderRadius: 'var(--input-radius)',
-                                                color: 'var(--text)',
-                                                transition: 'all var(--motion-duration) var(--motion-ease)'
-                                            }}
-                                        />
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs font-bold uppercase tracking-wider block mb-2 opacity-80">Role</label>
-                                            <select 
-                                                className="w-full px-4 py-3 outline-none focus:ring-[length:var(--ring-width)] focus:ring-[var(--primary)] focus:border-[var(--primary)] appearance-none"
-                                                style={{
-                                                    backgroundColor: 'var(--input-bg)',
-                                                    borderColor: 'var(--input-border-color)',
-                                                    borderWidth: 'var(--input-border)',
-                                                    borderRadius: 'var(--input-radius)',
-                                                    color: 'var(--text)',
-                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
-                                                }}
-                                            >
-                                                <option>Product Designer</option>
-                                                <option>Developer</option>
-                                                <option>Manager</option>
-                                            </select>
-                                        </div>
-                                         <div className="flex flex-col justify-end">
-                                            <button 
-                                                className="w-full py-3 font-bold text-center hover:brightness-110"
-                                                 style={{ 
-                                                    backgroundColor: 'var(--primary)', 
-                                                    color: '#fff',
-                                                    borderRadius: 'var(--btn-radius)',
-                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
-                                                }}
-                                            >
-                                                Submit
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-6 pt-2">
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <input type="checkbox" className="hidden peer" />
-                                            <div 
-                                                className="w-5 h-5 border-2 flex items-center justify-center peer-checked:bg-[var(--primary)] peer-checked:border-[var(--primary)]"
-                                                style={{ 
-                                                    borderColor: 'var(--input-border-color)',
-                                                    borderRadius: '4px',
-                                                    transition: 'all var(--motion-duration) var(--motion-ease)'
-                                                }}
-                                            >
-                                                <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                            </div>
-                                            <span className="text-sm opacity-80 group-hover:opacity-100 transition-opacity">Subscribe to newsletter</span>
-                                        </label>
-
-                                        <label className="flex items-center gap-3 cursor-pointer group">
-                                            <input type="checkbox" className="hidden peer" defaultChecked />
-                                            <div 
-                                                className="w-10 h-6 rounded-full relative bg-gray-300 peer-checked:bg-[var(--success)] transition-colors"
-                                                 style={{ transition: 'background-color var(--motion-duration) var(--motion-ease)' }}
-                                            >
-                                                <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:left-5 shadow-sm"></div>
-                                            </div>
-                                            <span className="text-sm opacity-80 group-hover:opacity-100 transition-opacity">Notifications</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <div className="h-[200px] flex items-center justify-center border-2 border-dashed border-current border-opacity-10 rounded-lg opacity-40">
-                            <span className="text-sm font-mono">End of content (Scroll test)</span>
-                        </div>
+                        <button style={{ 
+                            backgroundColor: isWireframe ? 'transparent' : 'var(--primary)', color: isWireframe ? 'currentColor' : '#fff', 
+                            padding: '8px 16px', borderRadius: 'var(--btn-radius)', 
+                            border: isWireframe ? '1px solid currentColor' : 'none',
+                            fontWeight: 'var(--btn-weight)' as any, fontSize: '12px' 
+                        }}>Get Started</button>
                     </div>
-                </div>
+                </nav>
+
+                <main className="w-full min-h-screen">
+                    {/* DYNAMIC SECTION RENDERING BASED ON STRATEGY */}
+                    {system.layout.sections.map(sectionId => renderSection(sectionId))}
+
+                    {/* FOOTER */}
+                    <footer className="bg-current bg-opacity-[0.05] border-t border-current border-opacity-10" style={{ padding: 'var(--section-gap) var(--unit)' }}>
+                        <div className="max-w-[var(--container-max)] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+                             <div>
+                                 <h4 className="font-bold mb-4">Platform</h4>
+                                 <ul className="space-y-2 text-sm opacity-60">
+                                     <li>Features</li>
+                                     <li>Integrations</li>
+                                     <li>Pricing</li>
+                                 </ul>
+                             </div>
+                             <div>
+                                 <h4 className="font-bold mb-4">Resources</h4>
+                                 <ul className="space-y-2 text-sm opacity-60">
+                                     <li>Documentation</li>
+                                     <li>API Reference</li>
+                                     <li>Community</li>
+                                 </ul>
+                             </div>
+                             <div>
+                                 <h4 className="font-bold mb-4">Company</h4>
+                                 <ul className="space-y-2 text-sm opacity-60">
+                                     <li>About</li>
+                                     <li>Blog</li>
+                                     <li>Careers</li>
+                                 </ul>
+                             </div>
+                             <div>
+                                 <h4 className="font-bold mb-4">Legal</h4>
+                                 <ul className="space-y-2 text-sm opacity-60">
+                                     <li>Privacy</li>
+                                     <li>Terms</li>
+                                 </ul>
+                             </div>
+                        </div>
+                    </footer>
+                </main>
             </div>
         ) : (
             /* Style Guide Mode */
@@ -464,7 +445,11 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                          <div className="space-y-8">
                              {[5, 4, 3, 2, 1, 0].map((pow, i) => {
                                  const size = Math.round(system.typography.baseSize * Math.pow(system.typography.scaleRatio, pow));
-                                 const tag = pow === 0 ? 'Body' : `H${6-i}`;
+                                 // H1 Fix: Map pow 5 (largest) to H1 (index 1 visually)
+                                 // Loop is 5,4,3,2,1,0.
+                                 // i is 0,1,2,3,4,5
+                                 // Correct mapping: i=0 -> H1.
+                                 const tag = pow === 0 ? 'Body' : 'H' + (i + 1);
                                  return (
                                      <div key={i} className="flex items-baseline border-b border-gray-200 pb-4">
                                          <div className="w-48 shrink-0 opacity-50 font-mono text-sm">
@@ -474,7 +459,10 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                                             style={{ 
                                                 fontSize: `${size}px`, 
                                                 fontFamily: pow === 0 ? 'var(--font-body)' : 'var(--font-head)',
-                                                fontWeight: pow === 0 ? 400 : 700
+                                                fontWeight: pow === 0 ? 400 : 700,
+                                                letterSpacing: 'var(--type-spacing)',
+                                                textTransform: system.typography.textTransform as any,
+                                                textDecoration: system.typography.textDecoration as any
                                             }}
                                          >
                                              The quick brown fox jumps over the lazy dog.
@@ -485,11 +473,22 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                          </div>
                     </section>
 
-                    {/* Spacing */}
+                    {/* Layout & Spacing */}
                     <section>
-                         <h2 className="text-2xl font-bold uppercase tracking-widest border-b border-gray-300 pb-4 mb-8">03. Spacing Scale</h2>
+                         <h2 className="text-2xl font-bold uppercase tracking-widest border-b border-gray-300 pb-4 mb-8">03. Layout & Spacing</h2>
+                         <div className="grid grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <h4 className="font-bold mb-2">Structure</h4>
+                                <ul className="list-disc pl-5 opacity-80 font-mono text-sm">
+                                    <li>Container Max Width: {system.layout.containerWidth}px</li>
+                                    <li>Section Spacing: {system.layout.sectionSpacing}</li>
+                                    <li>Hero Style: {system.layout.heroStyle}</li>
+                                    <li>Active Formula: {system.layout.activeFormula}</li>
+                                </ul>
+                            </div>
+                         </div>
                          <div className="flex gap-4 items-end">
-                             {[1, 2, 4, 6, 8, 12].map(mult => (
+                             {[1, 2, 4, 8].map(mult => (
                                  <div key={mult} className="flex flex-col items-center gap-2">
                                      <div 
                                         className="bg-red-200 border border-red-500" 
@@ -500,10 +499,6 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ system }) => {
                              ))}
                          </div>
                     </section>
-
-                    <div className="pt-16 text-center opacity-40 text-sm font-mono">
-                        Generated by MonoScale Configurator
-                    </div>
                 </div>
             </div>
         )}

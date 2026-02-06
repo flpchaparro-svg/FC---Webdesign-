@@ -1,3 +1,17 @@
+export type BusinessType = 'saas' | 'ecommerce' | 'service' | 'portfolio' | 'content';
+export type BrandVibe = 'trustworthy' | 'innovative' | 'luxury' | 'friendly' | 'bold';
+export type ConversionGoal = 'lead' | 'purchase' | 'awareness';
+export type LayoutFormula = 'storybrand' | 'pas' | 'luxury' | 'showcase';
+
+export interface PageDefinition {
+  id: string;
+  name: string;
+  slug: string;
+  required: boolean;
+  reason: string;
+  selected: boolean;
+}
+
 export interface DesignSystem {
   colors: {
     primary: string;
@@ -21,10 +35,28 @@ export interface DesignSystem {
     scaleRatio: number;
     lineHeightHeading: number;
     lineHeightBody: number;
+    letterSpacing: number; // em
+    textTransform: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+    textDecoration: 'none' | 'underline' | 'line-through';
+  };
+  layout: {
+    // Strategy
+    businessType: BusinessType;
+    brandVibe: BrandVibe;
+    conversionGoal: ConversionGoal;
+    activeFormula: LayoutFormula;
+    sections: string[]; // e.g. ['hero', 'problem', 'solution']
+    
+    // Site Architecture
+    pages: PageDefinition[];
+
+    // Tactics (Tokens)
+    heroStyle: 'split' | 'center' | 'minimal';
+    sectionSpacing: 'compact' | 'comfortable' | 'spacious';
+    containerWidth: number; // px
   };
   spacing: {
     baseUnit: number; // px
-    maxContainerWidth: number; // px
   };
   shape: {
     borderRadius: number; // px
@@ -40,6 +72,8 @@ export interface DesignSystem {
     borderWidth: number;
     textTransform: 'uppercase' | 'none' | 'capitalize';
     fontWeight: string;
+    borderStyle: 'solid' | 'dashed' | 'dotted';
+    hoverScale: number;
     applyShadow: boolean;
     variants: {
       primary: { bg: string; text: string; border: string };
@@ -77,3 +111,5 @@ export interface FontOption {
   value: string;
   category: 'sans-serif' | 'serif' | 'monospace' | 'display';
 }
+
+export type Category = 'palette' | 'typography' | 'layout' | 'shape' | 'buttons' | 'inputs' | 'motion';

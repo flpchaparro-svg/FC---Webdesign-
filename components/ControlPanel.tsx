@@ -383,9 +383,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ system, onChange }) 
             />
             <SliderControl 
                 label="Max Width" 
-                value={system.spacing.maxContainerWidth} 
+                value={system.layout.containerWidth} 
                 min={960} max={1600} step={10} unit="px"
-                onChange={(val) => onChange({...system, spacing: {...system.spacing, maxContainerWidth: val}})}
+                onChange={(val) => onChange({...system, layout: {...system.layout, containerWidth: val}})}
             />
         </div>
       </Accordion>
