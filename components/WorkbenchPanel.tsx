@@ -225,6 +225,13 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({ system, onChange
               <ColorInput label="Error" value={system.colors.error} onChange={(v) => updateColor(['error'], v)} />
           </div>
           <div>
+              <h3 className="font-bold text-sm border-b border-[#1a1a1a] pb-2 mb-4">Neutral Palette</h3>
+              <ColorInput label="Surface (Lightest)" value={system.colors.neutral[50]} onChange={(v) => updateColor(['neutral', '50'], v)} />
+              <ColorInput label="Background (Light)" value={system.colors.neutral[100]} onChange={(v) => updateColor(['neutral', '100'], v)} />
+              <ColorInput label="Borders" value={system.colors.neutral[200]} onChange={(v) => updateColor(['neutral', '200'], v)} />
+              <ColorInput label="Text (Darkest)" value={system.colors.neutral[900]} onChange={(v) => updateColor(['neutral', '900'], v)} />
+          </div>
+          <div>
               <h3 className="font-bold text-sm border-b border-[#1a1a1a] pb-2 mb-4">Light Theme</h3>
               <ColorInput label="Canvas" value={system.colors.light.canvas} onChange={(v) => updateColor(['light', 'canvas'], v)} />
               <ColorInput label="Text" value={system.colors.light.text} onChange={(v) => updateColor(['light', 'text'], v)} />
@@ -289,6 +296,45 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({ system, onChange
                 <SliderControl label="Scale Ratio" value={system.typography.scaleRatio} min={1.0} max={2.0} step={0.001} onChange={(v) => updateSystem('typography', 'scaleRatio', v)} />
                 <SliderControl label="Line Height (Head)" value={system.typography.lineHeightHeading} min={0.8} max={2.5} step={0.1} onChange={(v) => updateSystem('typography', 'lineHeightHeading', v)} />
                 <SliderControl label="Line Height (Body)" value={system.typography.lineHeightBody} min={0.8} max={2.5} step={0.1} onChange={(v) => updateSystem('typography', 'lineHeightBody', v)} />
+            </div>
+
+            <div>
+                <h3 className="font-bold text-sm border-b border-[#1a1a1a] pb-2 mb-4">Eyebrows / Labels</h3>
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                             <label className="text-xs font-bold uppercase block mb-1">Text Case</label>
+                             <select 
+                                className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none"
+                                value={system.typography.eyebrow.textTransform}
+                                onChange={(e) => updateSystem('typography', 'eyebrow', { ...system.typography.eyebrow, textTransform: e.target.value })}
+                            >
+                                <option value="uppercase">UPPERCASE</option>
+                                <option value="capitalize">Capitalize</option>
+                                <option value="none">Normal</option>
+                            </select>
+                        </div>
+                         <div>
+                             <label className="text-xs font-bold uppercase block mb-1">Weight</label>
+                             <select 
+                                className="w-full bg-white border border-[#1a1a1a] p-2 text-xs focus:outline-none"
+                                value={system.typography.eyebrow.weight}
+                                onChange={(e) => updateSystem('typography', 'eyebrow', { ...system.typography.eyebrow, weight: e.target.value })}
+                            >
+                                <option value="400">Regular</option>
+                                <option value="500">Medium</option>
+                                <option value="600">Semibold</option>
+                                <option value="700">Bold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <SliderControl 
+                        label="Spacing" 
+                        value={system.typography.eyebrow.tracking} 
+                        min={0} max={0.5} step={0.01} 
+                        onChange={(v) => updateSystem('typography', 'eyebrow', { ...system.typography.eyebrow, tracking: v })} 
+                    />
+                </div>
             </div>
         </div>
     </>

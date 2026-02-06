@@ -35,6 +35,15 @@ export const calculateContrastRatio = (color1: string, color2: string): number =
   }
 };
 
+export const getAccessibleTextColor = (hexBackgroundColor: string): string => {
+    // Simple luminance check to ensure text is visible on any background
+    const rgb = hexToRgb(hexBackgroundColor);
+    if (!rgb) return '#000000';
+    // YIQ equation
+    const yiq = ((rgb.r * 299) + (rgb.g * 587) + (rgb.b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+};
+
 export const getContrastScore = (ratio: number): { aa: boolean; aaa: boolean; score: string } => {
   const aa = ratio >= 4.5;
   const aaa = ratio >= 7;

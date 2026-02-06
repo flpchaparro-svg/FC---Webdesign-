@@ -7,6 +7,12 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
     accent: '#F59E0B',
     success: '#10B981',
     error: '#EF4444',
+    neutral: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      900: '#111827',
+    },
     light: {
       canvas: '#FFFFFF',
       text: '#111827',
@@ -26,6 +32,12 @@ export const INITIAL_DESIGN_SYSTEM: DesignSystem = {
     letterSpacing: 0,
     textTransform: 'none',
     textDecoration: 'none',
+    eyebrow: {
+        font: 'Inter',
+        weight: '700',
+        tracking: 0.15,
+        textTransform: 'uppercase',
+    }
   },
   layout: {
     businessType: 'saas',

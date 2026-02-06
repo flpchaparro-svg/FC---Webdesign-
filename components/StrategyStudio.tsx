@@ -1,304 +1,294 @@
-import React, { useState, useEffect } from 'react';
-import { DesignSystem, BusinessType, StructureOption, PageDefinition, ConversionGoal, BrandVibe } from '../types';
+import React, { useState } from 'react';
+import { DesignSystem, BusinessType, ConversionGoal, BrandVibe, StructureOption } from '../types';
 import { getStructureOptions, getRecommendedSitemap } from '../services/strategyUtils';
-import { ArrowRight, Check, Target, Briefcase, ArrowLeft, Zap, Users, ShoppingBag, Layout, AlertCircle } from 'lucide-react';
+import { ArrowRight, Check, ArrowLeft } from 'lucide-react';
 
 interface StrategyStudioProps {
   system: DesignSystem;
   onComplete: (newSystem: DesignSystem) => void;
-  onCancel: () => void;
 }
 
-export const StrategyStudio: React.FC<StrategyStudioProps> = ({ system, onComplete, onCancel }) => {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [tempSystem, setTempSystem] = useState<DesignSystem>(system);
-  const [selectedOption, setSelectedOption] = useState<StructureOption | null>(null);
+export const StrategyStudio: React.FC<StrategyStudioProps> = ({ system, onComplete }) => {
+  const [step, setStep] = useState(0);
+  
+  // Local State
+  const [businessName, setBusinessName] = useState('Untitled Project');
+  const [businessType, setBusinessType] = useState<BusinessType>('service');
+  const [goal, setGoal] = useState<ConversionGoal>('lead');
+  const [vibe, setVibe] = useState<BrandVibe>('trustworthy');
+  const [selectedStructure, setSelectedStructure] = useState<StructureOption | null>(null);
+  
+  // Handlers
+  const handleContextSubmit = () => setStep(2);
 
-  // Sync internal state with system prop on mount
-  useEffect(() => {
-    setTempSystem(system);
-  }, [system]);
-
-  // Derived state for Step 2
-  const structureOptions = getStructureOptions(tempSystem.layout.businessType);
-
-  // When business type changes, auto-update pages to recommendation
-  const handleBusinessTypeChange = (type: BusinessType) => {
-     const pages = getRecommendedSitemap(type);
-     setTempSystem(prev => ({
-         ...prev,
-         layout: { ...prev.layout, businessType: type, pages: pages }
-     }));
+  const handleStructureSelect = (option: StructureOption) => {
+    setSelectedStructure(option);
+    setStep(3); // This moves to the Sitemap step
   };
 
-  const handleOptionSelect = (option: StructureOption) => {
-      setSelectedOption(option);
-      setTempSystem(prev => ({
-          ...prev,
-          layout: {
-              ...prev.layout,
-              activeFormula: option.id,
-              sections: option.sections
-          }
-      }));
+  const handleFinalBuild = () => {
+    if (!selectedStructure) return;
+    const sitemap = getRecommendedSitemap(businessType);
+    
+    // Create the new system state
+    const newSystem: DesignSystem = {
+      ...system,
+      layout: {
+        ...system.layout,
+        businessType,
+        conversionGoal: goal,
+        brandVibe: vibe,
+        activeFormula: selectedStructure.id,
+        sections: selectedStructure.sections,
+        heroStyle: selectedStructure.id === 'luxury' ? 'center' : 'split',
+        pages: sitemap,
+      }
+    };
+    onComplete(newSystem);
   };
 
-  const togglePage = (pageId: string) => {
-      setTempSystem(prev => ({
-          ...prev,
-          layout: {
-              ...prev.layout,
-              pages: prev.layout.pages.map(p => p.id === pageId ? { ...p, selected: !p.selected } : p)
-          }
-      }));
-  };
-
-  return (
-    <div className="fixed inset-0 bg-[#1a1a1a] text-white z-50 flex flex-col font-sans">
-      {/* Header */}
-      <div className="h-20 border-b border-white/10 flex items-center justify-between px-8 bg-[#1a1a1a] shrink-0">
-        <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.5)]">
-                <Target size={18} className="text-white"/>
-            </div>
-            <div>
-                <h1 className="font-bold text-lg tracking-tight">Strategy Studio</h1>
-                <p className="text-xs text-gray-400">Architect your site before you design.</p>
-            </div>
-        </div>
-        <div className="flex gap-4">
-             <button onClick={onCancel} className="text-sm font-bold opacity-60 hover:opacity-100 transition-opacity">EXIT</button>
+  // --- RENDER STEP 0: LANDING ---
+  if (step === 0) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center bg-[#FFF2EC] text-[#1a1a1a] p-8 border-b-2 border-[#1a1a1a]">
+        <div className="max-w-2xl text-center space-y-8">
+          <div className="inline-block border-2 border-[#1a1a1a] px-4 py-2 font-mono text-xs uppercase tracking-widest bg-[#FFF2EC]">
+            System v4.0 // Architect Mode
+          </div>
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
+            STRATEGY<br/>STUDIO
+          </h1>
+          <p className="text-lg md:text-xl font-medium max-w-lg mx-auto opacity-80">
+            Define the business logic, marketing psychology, and site architecture before you touch a single pixel.
+          </p>
+          <button 
+            onClick={() => setStep(1)}
+            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-[#1a1a1a] text-[#FFF2EC] text-lg font-bold tracking-wider border-2 border-[#1a1a1a] hover:bg-[#FFF2EC] hover:text-[#1a1a1a] transition-all"
+          >
+            INITIALIZE PROJECT <ArrowRight size={20} />
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto flex justify-center bg-[#111]">
-          <div className="w-full max-w-5xl p-8 md:p-12">
-              
-              {/* Progress Indicator */}
-              <div className="flex items-center gap-4 mb-12 text-xs font-bold uppercase tracking-wider text-gray-600">
-                  <div className={`flex items-center gap-2 ${step >= 1 ? "text-blue-500" : ""}`}>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center">1</span>
-                      <span>Context</span>
-                  </div>
-                  <div className={`w-12 h-[1px] ${step >= 2 ? "bg-blue-500" : "bg-gray-800"}`}></div>
-                  <div className={`flex items-center gap-2 ${step >= 2 ? "text-blue-500" : ""}`}>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center">2</span>
-                      <span>Structure</span>
-                  </div>
-                  <div className={`w-12 h-[1px] ${step >= 3 ? "bg-blue-500" : "bg-gray-800"}`}></div>
-                  <div className={`flex items-center gap-2 ${step >= 3 ? "text-blue-500" : ""}`}>
-                      <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center">3</span>
-                      <span>Pages</span>
-                  </div>
+  // --- RENDER STEP 1: CONTEXT ---
+  if (step === 1) {
+    return (
+      <div className="h-full w-full flex flex-col bg-[#FFF2EC] text-[#1a1a1a]">
+        <div className="p-8 border-b-2 border-[#1a1a1a] flex justify-between items-center bg-[#FFF2EC]">
+           <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+             <span className="w-8 h-8 bg-[#1a1a1a] text-[#FFF2EC] rounded-full flex items-center justify-center text-sm">1</span> 
+             PROJECT CONTEXT
+           </h2>
+        </div>
+        
+        <div className="flex-1 p-8 md:p-16 flex flex-col items-center overflow-y-auto">
+          <div className="w-full max-w-2xl space-y-12">
+            
+            {/* Input Group */}
+            <div className="space-y-4">
+              <label className="text-sm font-bold uppercase tracking-widest block">Project / Business Name</label>
+              <input 
+                type="text" 
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                className="w-full bg-transparent border-b-4 border-[#1a1a1a] text-4xl font-black py-4 focus:outline-none placeholder:opacity-20 placeholder:text-[#1a1a1a]"
+                placeholder="TYPE HERE..."
+                autoFocus
+              />
+            </div>
+
+            {/* Select Group */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-4">
+                <label className="text-sm font-bold uppercase tracking-widest block">Sector / Industry</label>
+                <div className="space-y-2">
+                  {(['saas', 'service', 'ecommerce', 'portfolio'] as BusinessType[]).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setBusinessType(type)}
+                      className={`w-full text-left px-6 py-4 border-2 border-[#1a1a1a] font-bold uppercase transition-all flex justify-between items-center
+                        ${businessType === type ? 'bg-[#1a1a1a] text-[#FFF2EC]' : 'bg-transparent hover:bg-[#1a1a1a] hover:text-[#FFF2EC]'}`}
+                    >
+                      {type}
+                      {businessType === type && <Check size={16}/>}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* STEP 1: CONTEXT */}
-              {step === 1 && (
-                  <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <div>
-                        <h2 className="text-5xl font-black mb-4 tracking-tighter">Let's define your mission.</h2>
-                        <p className="text-xl text-gray-400 max-w-2xl">Strategy drives design. Tell us about your business goals to generate a tailored architectural blueprint.</p>
-                      </div>
+              <div className="space-y-4">
+                <label className="text-sm font-bold uppercase tracking-widest block">Primary Objective</label>
+                <div className="space-y-2">
+                  {(['lead', 'purchase', 'awareness'] as ConversionGoal[]).map((g) => (
+                    <button
+                      key={g}
+                      onClick={() => setGoal(g)}
+                      className={`w-full text-left px-6 py-4 border-2 border-[#1a1a1a] font-bold uppercase transition-all flex justify-between items-center
+                        ${goal === g ? 'bg-[#1a1a1a] text-[#FFF2EC]' : 'bg-transparent hover:bg-[#1a1a1a] hover:text-[#FFF2EC]'}`}
+                    >
+                      {g === 'lead' ? 'Get Leads / Calls' : g === 'purchase' ? 'Sales / Orders' : 'Brand Awareness'}
+                      {goal === g && <Check size={16}/>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                          {/* Business Type Selection */}
-                          <div className="space-y-6">
-                              <label className="flex items-center gap-2 text-sm font-bold uppercase text-blue-400 tracking-wider">
-                                  <Briefcase size={16}/> Business Model
-                              </label>
-                              <div className="grid grid-cols-2 gap-4">
-                                  {['saas', 'service', 'ecommerce', 'portfolio'].map((type) => (
-                                      <button 
-                                        key={type}
-                                        onClick={() => handleBusinessTypeChange(type as BusinessType)}
-                                        className={`p-6 border text-left rounded-xl transition-all duration-300 group relative overflow-hidden ${tempSystem.layout.businessType === type ? 'border-blue-500 bg-blue-600/10 text-white shadow-[0_0_30px_rgba(37,99,235,0.1)]' : 'border-white/5 bg-[#1a1a1a] text-gray-400 hover:border-white/20 hover:bg-[#222]'}`}
-                                      >
-                                          <div className={`mb-4 transition-colors ${tempSystem.layout.businessType === type ? 'text-blue-400' : 'text-gray-600 group-hover:text-gray-400'}`}>
-                                              {type === 'saas' && <Zap size={24}/>}
-                                              {type === 'service' && <Users size={24}/>}
-                                              {type === 'ecommerce' && <ShoppingBag size={24}/>}
-                                              {type === 'portfolio' && <Layout size={24}/>}
-                                          </div>
-                                          <span className="font-bold uppercase text-sm tracking-wider block mb-1">{type}</span>
-                                          <span className="text-[10px] opacity-60 block leading-tight">
-                                              {type === 'saas' && 'Software & Digital Products'}
-                                              {type === 'service' && 'Agencies & Consulting'}
-                                              {type === 'ecommerce' && 'Physical Goods & Retail'}
-                                              {type === 'portfolio' && 'Personal Brand & Work'}
-                                          </span>
-                                      </button>
-                                  ))}
-                              </div>
-                          </div>
-
-                          {/* Goal Selection */}
-                          <div className="space-y-6">
-                               <label className="flex items-center gap-2 text-sm font-bold uppercase text-blue-400 tracking-wider">
-                                   <Target size={16}/> Primary Goal
-                               </label>
-                               <div className="space-y-3">
-                                   {['lead', 'purchase', 'awareness'].map((goal) => (
-                                       <div 
-                                        key={goal}
-                                        onClick={() => setTempSystem(prev => ({...prev, layout: {...prev.layout, conversionGoal: goal as ConversionGoal}}))}
-                                        className={`p-4 border rounded-xl cursor-pointer flex items-center gap-4 transition-all ${tempSystem.layout.conversionGoal === goal ? 'border-blue-500 bg-blue-600/10' : 'border-white/5 bg-[#1a1a1a] hover:bg-[#222] hover:border-white/20'}`}
-                                       >
-                                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${tempSystem.layout.conversionGoal === goal ? 'border-blue-500' : 'border-gray-700'}`}>
-                                               {tempSystem.layout.conversionGoal === goal && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>}
-                                           </div>
-                                           <div>
-                                               <span className="text-sm font-bold capitalize block text-white">
-                                                   {goal === 'lead' ? 'Generate Leads' : goal === 'purchase' ? 'Direct Sales' : 'Brand Awareness'}
-                                               </span>
-                                           </div>
-                                       </div>
-                                   ))}
-                               </div>
-                          </div>
-                      </div>
-                      
-                      <div className="pt-4">
-                          <button onClick={() => setStep(2)} className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
-                              Next: Choose Structure <ArrowRight size={20}/>
-                          </button>
-                      </div>
-                  </div>
-              )}
-
-              {/* STEP 2: STRUCTURE */}
-              {step === 2 && (
-                   <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                       <div className="flex items-center gap-4 mb-8">
-                           <button onClick={() => setStep(1)} className="p-3 border border-white/10 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><ArrowLeft size={18}/></button>
-                           <div>
-                               <h2 className="text-4xl font-black tracking-tighter">Choose your framework.</h2>
-                               <p className="text-gray-400 mt-1">Select a proven layout strategy for {tempSystem.layout.businessType}.</p>
-                           </div>
-                       </div>
-                       
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                           {structureOptions.map((option) => (
-                               <div 
-                                key={option.id}
-                                onClick={() => handleOptionSelect(option)}
-                                className={`border-2 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-2 relative overflow-hidden group ${selectedOption?.id === option.id ? 'border-blue-500 bg-[#161b22]' : 'border-white/5 bg-[#1a1a1a] hover:border-white/20'}`}
-                               >
-                                   <div className="flex justify-between items-start mb-4">
-                                       <h3 className={`text-xl font-bold ${selectedOption?.id === option.id ? 'text-blue-400' : 'text-white'}`}>{option.title}</h3>
-                                       {selectedOption?.id === option.id && <div className="bg-blue-500 text-white p-1 rounded-full"><Check size={14} strokeWidth={3}/></div>}
-                                   </div>
-                                   
-                                   <p className="text-sm text-gray-400 mb-8 leading-relaxed min-h-[60px]">{option.description}</p>
-                                   
-                                   {/* Wireframe Visualization */}
-                                   <div className="space-y-2 mb-8 opacity-50 grayscale group-hover:grayscale-0 transition-all duration-500">
-                                       {option.sections.slice(0, 5).map((s, i) => (
-                                           <div key={s} className={`w-full rounded bg-gray-700 ${i===0 ? 'h-16' : 'h-8'}`}></div>
-                                       ))}
-                                   </div>
-
-                                   <div className="space-y-3 pt-6 border-t border-white/5">
-                                       {option.features.map(f => (
-                                           <div key={f} className="flex items-center gap-2 text-xs font-mono text-gray-500 group-hover:text-blue-300 transition-colors">
-                                               <Check size={12}/> {f}
-                                           </div>
-                                       ))}
-                                   </div>
-                               </div>
-                           ))}
-                       </div>
-
-                       <div className="pt-8 flex justify-end">
-                          <button 
-                            disabled={!selectedOption}
-                            onClick={() => setStep(3)} 
-                            className="bg-white text-black px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black"
-                          >
-                              Next: Sitemap <ArrowRight size={20}/>
-                          </button>
-                      </div>
-                   </div>
-              )}
-
-              {/* STEP 3: SITEMAP */}
-              {step === 3 && (
-                   <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                       <div className="flex items-center gap-4 mb-8">
-                           <button onClick={() => setStep(2)} className="p-3 border border-white/10 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><ArrowLeft size={18}/></button>
-                           <div>
-                               <h2 className="text-4xl font-black tracking-tighter">Define your pages.</h2>
-                               <p className="text-gray-400 mt-1">Select the core pages needed for your MVP.</p>
-                           </div>
-                       </div>
-
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                           <div>
-                               <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-6 flex items-center gap-2">
-                                   <AlertCircle size={14}/> Recommended for {tempSystem.layout.businessType}
-                               </h3>
-                               <div className="space-y-3">
-                                   {tempSystem.layout.pages.map((page) => (
-                                       <div 
-                                        key={page.id}
-                                        onClick={() => togglePage(page.id)}
-                                        className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-all duration-200 ${page.selected ? 'bg-white text-black border-white shadow-lg' : 'border-white/10 bg-transparent text-gray-400 hover:border-white/30 hover:bg-white/5'}`}
-                                       >
-                                           <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${page.selected ? 'border-black bg-black text-white' : 'border-gray-600'}`}>
-                                               {page.selected && <Check size={12}/>}
-                                           </div>
-                                           <div>
-                                               <div className="flex items-center gap-2">
-                                                   <span className="font-bold">{page.name}</span>
-                                                   {page.required && <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${page.selected ? 'bg-black text-white' : 'bg-white/10 text-gray-400'}`}>Core</span>}
-                                               </div>
-                                               <p className={`text-xs mt-1 leading-normal ${page.selected ? 'opacity-70 font-medium' : 'opacity-40'}`}>{page.reason}</p>
-                                           </div>
-                                       </div>
-                                   ))}
-                               </div>
-                           </div>
-                           
-                           {/* Review Summary */}
-                           <div className="bg-[#161b22] border border-blue-500/30 rounded-3xl p-8 h-fit shadow-2xl relative overflow-hidden">
-                               <div className="absolute top-0 right-0 p-32 bg-blue-600 blur-[120px] opacity-10 rounded-full pointer-events-none"></div>
-                               
-                               <h3 className="text-2xl font-black mb-8 relative z-10">Blueprint Summary</h3>
-                               <div className="space-y-8 relative z-10">
-                                   <div className="flex justify-between items-end border-b border-white/10 pb-4">
-                                       <div>
-                                            <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Strategy</label>
-                                            <div className="text-xl font-bold text-blue-400">{structureOptions.find(o => o.id === tempSystem.layout.activeFormula)?.title || 'Custom'}</div>
-                                       </div>
-                                       <div className="text-right">
-                                            <label className="text-[10px] font-bold uppercase text-gray-500 block mb-1">Goal</label>
-                                            <div className="text-sm font-bold capitalize">{tempSystem.layout.conversionGoal}</div>
-                                       </div>
-                                   </div>
-
-                                   <div>
-                                       <label className="text-[10px] font-bold uppercase text-gray-500 block mb-3">Sitemap Structure</label>
-                                       <div className="flex flex-wrap gap-2">
-                                           {tempSystem.layout.pages.filter(p => p.selected).map(p => (
-                                               <span key={p.id} className="text-xs bg-white/10 px-3 py-1.5 rounded-md font-medium border border-white/5">{p.name}</span>
-                                           ))}
-                                       </div>
-                                   </div>
-                               </div>
-                               
-                               <button 
-                                onClick={() => onComplete(tempSystem)}
-                                className="w-full mt-12 bg-white text-black hover:bg-blue-500 hover:text-white py-5 rounded-xl font-black text-lg flex items-center justify-center gap-3 shadow-xl transition-all hover:scale-[1.02] hover:shadow-blue-500/20"
-                               >
-                                   <Layout size={20}/> GENERATE BLUEPRINT
-                               </button>
-                           </div>
-                       </div>
-                   </div>
-              )}
+            <div className="pt-8 flex justify-end">
+               <button 
+                onClick={handleContextSubmit}
+                className="px-10 py-4 bg-[#1a1a1a] text-[#FFF2EC] font-bold text-xl tracking-wider border-2 border-[#1a1a1a] hover:bg-[#FFF2EC] hover:text-[#1a1a1a] transition-all flex items-center gap-3"
+              >
+                NEXT: STRUCTURE <ArrowRight size={20} />
+              </button>
+            </div>
 
           </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // --- RENDER STEP 2: STRUCTURE SELECTION ---
+  if (step === 2) {
+    const options = getStructureOptions(businessType);
+
+    return (
+      <div className="h-full w-full flex flex-col bg-[#FFF2EC] text-[#1a1a1a] overflow-hidden">
+        <div className="p-6 border-b-2 border-[#1a1a1a] flex justify-between items-center shrink-0 bg-[#FFF2EC]">
+           <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+             <span className="w-8 h-8 bg-[#1a1a1a] text-[#FFF2EC] rounded-full flex items-center justify-center text-sm">2</span> 
+             SELECT WIREFRAME STRATEGY
+           </h2>
+           <button onClick={() => setStep(1)} className="text-xs font-bold underline hover:opacity-50">BACK TO CONTEXT</button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="h-full flex flex-col md:flex-row gap-8 items-stretch justify-center max-w-7xl mx-auto">
+            {options.map((option) => (
+              <div 
+                key={option.id}
+                onClick={() => handleStructureSelect(option)}
+                className="flex-1 flex flex-col border-4 border-[#1a1a1a] bg-[#FFF2EC] cursor-pointer group hover:-translate-y-2 transition-transform duration-300 relative"
+              >
+                {/* Header */}
+                <div className="p-6 border-b-2 border-[#1a1a1a] bg-[#FFF2EC] group-hover:bg-[#1a1a1a] group-hover:text-[#FFF2EC] transition-colors">
+                  <h3 className="text-2xl font-black uppercase mb-2">{option.label}</h3>
+                  <p className="text-xs font-mono opacity-80 leading-relaxed">{option.description}</p>
+                </div>
+
+                {/* Wireframe Visual */}
+                <div className="flex-1 p-6 bg-[#FFF2EC] flex flex-col gap-2 items-center justify-center relative overflow-hidden">
+                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#1a1a1a 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
+                   
+                   {/* The Mini Blocks */}
+                   <div className="w-full max-w-[200px] flex flex-col gap-1 z-10">
+                      {option.visualPreview?.map((block, i) => (
+                        <div key={i} className={`w-full border-2 border-[#1a1a1a] bg-[#FFF2EC] flex items-center justify-center text-[10px] font-bold uppercase tracking-wider
+                          ${i === 0 ? 'h-16' : 'h-10'}
+                        `}>
+                          {block}
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                {/* Action */}
+                <div className="p-4 border-t-2 border-[#1a1a1a] text-center font-bold text-sm uppercase tracking-widest bg-[#FFF2EC] group-hover:bg-[#1a1a1a] group-hover:text-[#FFF2EC] transition-colors">
+                  Select This Blueprint
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER STEP 3: SITEMAP BUILDER ---
+  if (step === 3) {
+    const recommendedPages = getRecommendedSitemap(businessType);
+    
+    return (
+      <div className="h-full w-full flex flex-col bg-[#FFF2EC] text-[#1a1a1a] overflow-hidden">
+        <div className="p-6 border-b-2 border-[#1a1a1a] flex justify-between items-center shrink-0 bg-[#FFF2EC]">
+           <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+             <span className="w-8 h-8 bg-[#1a1a1a] text-[#FFF2EC] rounded-full flex items-center justify-center text-sm">3</span> 
+             SITE ARCHITECTURE
+           </h2>
+           <button onClick={() => setStep(2)} className="text-xs font-bold underline hover:opacity-50">CHANGE STRATEGY</button>
+        </div>
+
+        <div className="flex-1 flex flex-col md:flex-row">
+          
+          {/* Left: Info */}
+          <div className="w-full md:w-1/3 border-r-2 border-[#1a1a1a] p-8 bg-[#FFF2EC]">
+            <h3 className="text-xl font-bold mb-4 uppercase">Your Blueprint</h3>
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-bold uppercase opacity-60">Selected Strategy</label>
+                <p className="text-lg font-bold">{selectedStructure?.label}</p>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase opacity-60">Business Type</label>
+                <p className="text-lg font-bold capitalize">{businessType}</p>
+              </div>
+              
+              <div className="p-4 border-2 border-[#1a1a1a] bg-[#FFF2EC]">
+                <p className="text-sm font-medium leading-relaxed">
+                  "We have pre-selected pages based on the <strong>{businessType}</strong> model. 
+                  Add optional pages if necessary, but keep the nav lean for better conversion."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Interaction */}
+          <div className="flex-1 p-8 overflow-y-auto bg-[#FFF2EC]">
+             <h3 className="text-sm font-bold uppercase tracking-widest border-b-2 border-[#1a1a1a] pb-4 mb-6">Page Structure</h3>
+             
+             <div className="grid grid-cols-1 gap-3">
+               {recommendedPages.map((page) => (
+                 <label 
+                    key={page.id}
+                    className={`flex items-start gap-4 p-4 border-2 border-[#1a1a1a] cursor-pointer transition-all
+                      ${page.selected ? 'bg-[#1a1a1a] text-[#FFF2EC]' : 'bg-transparent hover:bg-[#1a1a1a] hover:text-[#FFF2EC]'}
+                    `}
+                 >
+                    <div className={`mt-1 w-5 h-5 border-2 flex items-center justify-center shrink-0 
+                      ${page.selected ? 'border-[#FFF2EC] bg-[#FFF2EC] text-[#1a1a1a]' : 'border-[#1a1a1a]'}
+                    `}>
+                      {page.selected && <Check size={12} strokeWidth={4} />}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-lg">{page.name}</span>
+                        <span className="font-mono text-xs opacity-60">{page.slug}</span>
+                        {page.required && <span className="px-2 py-0.5 border border-current text-[10px] font-bold uppercase rounded-sm">Essential</span>}
+                      </div>
+                      <p className={`text-xs mt-1 ${page.selected ? 'opacity-80' : 'opacity-60'}`}>{page.reason}</p>
+                    </div>
+                 </label>
+               ))}
+             </div>
+
+             <div className="mt-12 flex justify-end">
+               <button 
+                onClick={handleFinalBuild}
+                className="px-12 py-5 bg-[#1a1a1a] text-[#FFF2EC] font-black text-2xl tracking-widest border-2 border-transparent hover:bg-[#FFF2EC] hover:text-[#1a1a1a] hover:border-[#1a1a1a] transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+              >
+                BUILD PROJECT
+              </button>
+             </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
